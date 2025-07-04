@@ -94,7 +94,7 @@ export const QuoteSchemas = {
     numberOfQuotes: z.number()
       .int()
       .min(1, 'Number of quotes must be at least 1')
-      .max(20, 'Number of quotes cannot exceed 20'),
+      .max(10, 'Number of quotes cannot exceed 10'),
     topic: z.string().optional(),
   }),
   

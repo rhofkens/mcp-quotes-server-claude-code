@@ -205,6 +205,57 @@ export class ConfigError extends BaseError {
 }
 
 /**
+ * Network errors for connectivity issues
+ */
+export class NetworkError extends APIError {
+  constructor(
+    message: string,
+    service?: string,
+    details?: Record<string, unknown>
+  ) {
+    super(message, ErrorCode.API_TIMEOUT, service, details);
+  }
+  
+  override getUserMessage(): string {
+    return 'Network error: Unable to connect to the service. Please check your internet connection.';
+  }
+}
+
+/**
+ * Authentication errors for API key issues
+ */
+export class AuthenticationError extends APIError {
+  constructor(
+    message: string,
+    service?: string,
+    details?: Record<string, unknown>
+  ) {
+    super(message, ErrorCode.API_UNAUTHORIZED, service, details);
+  }
+  
+  override getUserMessage(): string {
+    return 'Authentication failed: Please check your API credentials.';
+  }
+}
+
+/**
+ * Rate limit errors
+ */
+export class RateLimitError extends APIError {
+  constructor(
+    message: string,
+    service?: string,
+    details?: Record<string, unknown>
+  ) {
+    super(message, ErrorCode.API_RATE_LIMIT, service, details);
+  }
+  
+  override getUserMessage(): string {
+    return 'Rate limit exceeded: Please wait before making more requests.';
+  }
+}
+
+/**
  * Error formatter for consistent error messages
  */
 export class ErrorFormatter {
