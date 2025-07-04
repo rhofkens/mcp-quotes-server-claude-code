@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Configuration files
+jest.config.js
+.eslintrc.js
+*.config.js
+
+# Generated files
+*.d.ts
+*.min.js
+
+# IDE
+.vscode/
+.idea/
+
+# Other
+*.log
