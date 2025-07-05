@@ -5,9 +5,19 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import { APIError, ErrorCode } from '../utils/errors.js';
+import { 
+  APIError, 
+  ErrorCode,
+  withRetry,
+  CircuitBreaker,
+  withTimeout,
+  logError,
+  ErrorContextBuilder,
+  generateRequestId
+} from '../utils/errorHandling.js';
 import { SerperApiResponse, SerperSearchResult } from '../types/quotes.js';
 import { validateEnvVar } from '../utils/validation.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Serper API configuration
@@ -33,70 +43,136 @@ export class SerperClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly timeout: number;
+  private readonly circuitBreaker: CircuitBreaker;
   
   constructor(config?: Partial<SerperConfig>) {
     // Get API key from environment or config
     this.apiKey = config?.apiKey || validateEnvVar('SERPER_API_KEY', process.env['SERPER_API_KEY']);
     this.baseUrl = config?.baseUrl || 'https://google.serper.dev';
     this.timeout = config?.timeout || 10000; // 10 seconds default
+    
+    // Initialize circuit breaker for API protection
+    this.circuitBreaker = new CircuitBreaker(
+      5,     // Open after 5 failures
+      60000, // Stay open for 1 minute
+      30000  // Try half-open after 30 seconds
+    );
   }
   
   /**
-   * Search for quotes using Serper API
+   * Search for quotes using Serper API with enhanced error handling
    */
   async searchQuotes(params: SerperSearchParams): Promise<SerperSearchResult[]> {
+    const requestId = generateRequestId();
+    const context = new ErrorContextBuilder()
+      .setOperation('searchQuotes')
+      .setInput({ query: params.query, num: params.num })
+      .setEnvironment()
+      .build();
+    
+    logger.info('Starting quote search', { requestId, params });
+    
     try {
-      const response = await axios.post<SerperApiResponse>(
-        `${this.baseUrl}/search`,
-        {
-          q: params.query,
-          num: params.num || 10,
-        },
-        {
-          headers: {
-            'X-API-KEY': this.apiKey,
-            'Content-Type': 'application/json',
+      // Execute with circuit breaker protection
+      return await this.circuitBreaker.execute(async () => {
+        // Wrap with retry logic for transient failures
+        return await withRetry(
+          async () => {
+            // Add timeout protection
+            const response = await withTimeout(
+              axios.post<SerperApiResponse>(
+                `${this.baseUrl}/search`,
+                {
+                  q: params.query,
+                  num: params.num || 10,
+                },
+                {
+                  headers: {
+                    'X-API-KEY': this.apiKey,
+                    'Content-Type': 'application/json',
+                    'X-Request-ID': requestId,
+                  },
+                  timeout: this.timeout,
+                }
+              ),
+              this.timeout,
+              'Serper API request timed out'
+            );
+            
+            // Check for API errors in response
+            if (response.data.error) {
+              throw new APIError(
+                `Serper API error: ${response.data.error}`,
+                ErrorCode.API_ERROR,
+                'serper',
+                { 
+                  error: response.data.error,
+                  requestId 
+                }
+              );
+            }
+            
+            // Log successful response
+            logger.info('Quote search completed', {
+              requestId,
+              resultsCount: response.data.organic?.length || 0,
+            });
+            
+            // Return organic results or empty array
+            return response.data.organic || [];
           },
-          timeout: this.timeout,
-        }
-      );
-      
-      // Check for API errors in response
-      if (response.data.error) {
-        throw new APIError(
-          `Serper API error: ${response.data.error}`,
-          ErrorCode.API_ERROR,
-          'serper',
-          { error: response.data.error }
+          {
+            maxRetries: 3,
+            initialDelay: 1000,
+            maxDelay: 10000,
+            backoffMultiplier: 2,
+            retryableErrors: [
+              ErrorCode.API_TIMEOUT,
+              ErrorCode.API_RATE_LIMIT,
+            ],
+            onRetry: (error, attempt) => {
+              logger.warn('Retrying Serper API request', {
+                requestId,
+                attempt,
+                error: error.message,
+              });
+            },
+          }
         );
-      }
-      
-      // Return organic results or empty array
-      return response.data.organic || [];
+      });
     } catch (error) {
+      // Log the error with context
+      logError(error, context);
+      
       if (error instanceof APIError) {
         throw error;
       }
       
       if (error instanceof AxiosError) {
-        // Handle specific Axios errors
+        // Handle specific Axios errors with enhanced context
         if (error.code === 'ECONNABORTED') {
           throw new APIError(
             'Serper API request timed out',
             ErrorCode.API_TIMEOUT,
             'serper',
-            { timeout: this.timeout }
+            { 
+              timeout: this.timeout,
+              requestId,
+              query: params.query 
+            }
           );
         }
         
         if (error.response) {
           const status = error.response.status;
+          const retryAfter = error.response.headers['retry-after'];
           
           if (status === 401) {
             throw new APIError(
               'Invalid Serper API key',
               ErrorCode.API_UNAUTHORIZED,
-              'serper'
+              'serper',
+              { requestId }
             );
           }
           
@@ -106,7 +182,8 @@ export class SerperClient {
               ErrorCode.API_RATE_LIMIT,
               'serper',
               {
-                retryAfter: error.response.headers['retry-after'],
+                retryAfter: retryAfter ? parseInt(retryAfter) : 60,
+                requestId,
               }
             );
           }
@@ -119,6 +196,7 @@ export class SerperClient {
               status,
               statusText: error.response.statusText,
               data: error.response.data,
+              requestId,
             }
           );
         }
@@ -128,7 +206,11 @@ export class SerperClient {
           `Network error connecting to Serper API: ${error.message}`,
           ErrorCode.API_ERROR,
           'serper',
-          { originalError: error.message }
+          { 
+            originalError: error.message,
+            requestId,
+            code: error.code 
+          }
         );
       }
       
@@ -137,7 +219,10 @@ export class SerperClient {
         'Unexpected error while searching quotes',
         ErrorCode.API_ERROR,
         'serper',
-        { originalError: String(error) }
+        { 
+          originalError: String(error),
+          requestId 
+        }
       );
     }
   }
@@ -155,6 +240,25 @@ export class SerperClient {
     }
     
     return baseQuery;
+  }
+  
+  /**
+   * Get circuit breaker status
+   */
+  getCircuitBreakerStatus(): { state: string; canExecute: boolean } {
+    const state = this.circuitBreaker.getState();
+    return {
+      state,
+      canExecute: state !== 'open',
+    };
+  }
+  
+  /**
+   * Reset circuit breaker (for manual intervention)
+   */
+  resetCircuitBreaker(): void {
+    this.circuitBreaker.reset();
+    logger.info('Circuit breaker manually reset');
   }
   
   /**

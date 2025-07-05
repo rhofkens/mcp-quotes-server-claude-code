@@ -146,7 +146,7 @@ describe('Validation Utilities', () => {
       expect(() => validate(QuoteSchemas.getQuotesParams, {
         person: 'Einstein',
         numberOfQuotes: 25
-      })).toThrow('Number of quotes cannot exceed 20');
+      })).toThrow('Number of quotes cannot exceed 10');
     });
     
     it('should validate quote object', () => {

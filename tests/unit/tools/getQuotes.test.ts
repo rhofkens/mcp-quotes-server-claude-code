@@ -47,7 +47,14 @@ describe('getQuotes Tool', () => {
     mockClient = {
       searchQuotes: jest.fn(),
       buildQuoteSearchQuery: jest.fn(),
-      extractQuoteFromSnippet: jest.fn()
+      extractQuoteFromSnippet: jest.fn(),
+      getCircuitBreakerStatus: jest.fn().mockReturnValue({
+        state: 'CLOSED',
+        canExecute: true,
+        consecutiveFailures: 0,
+        lastFailureTime: null,
+        nextResetTime: null
+      })
     } as unknown as jest.Mocked<SerperClient>;
     
     // Mock the serperClient export

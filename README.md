@@ -8,6 +8,10 @@ A Model Context Protocol (MCP) server that provides a simple tool for searching 
 - **Topic Filtering**: Optionally filter quotes by specific topics
 - **Flexible Results**: Request 1-10 quotes per search
 - **Prompt Template**: Resource providing structured templates for quote requests
+- **Enhanced Error Messages**: Actionable error messages with clear recovery steps
+- **Comprehensive Examples**: Extensive usage examples and integration patterns
+- **Robust Error Handling**: Graceful fallbacks and retry mechanisms
+- **TypeScript Support**: Full type safety with exported types
 - **MCP Protocol**: Full compliance with MCP standards for use with Claude and other AI assistants
 
 ## Installation
@@ -81,6 +85,12 @@ Provides a structured template for generating quote-related prompts.
 
 **URI:** `quotes://prompt-template`
 
+## Documentation
+
+- [Comprehensive Usage Examples](docs/EXAMPLES.md) - Detailed examples and integration patterns
+- [API Documentation](docs/API.md) - Complete API reference
+- [Testing Guide](TESTING.md) - Testing strategies and examples
+
 ## Development
 
 ### Setup
@@ -106,6 +116,8 @@ npm run build
 - `npm run build` - Build the TypeScript project
 - `npm run dev` - Run in development mode with hot reload
 - `npm test` - Run unit tests
+- `npm run test:integration` - Run integration tests
+- `npm run test:coverage` - Run tests with coverage report
 - `npm run typecheck` - Run TypeScript type checking
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
@@ -113,8 +125,14 @@ npm run build
 ### Testing
 
 ```bash
-# Run unit tests
+# Run all tests
 npm test
+
+# Run unit tests only
+npm run test:unit
+
+# Run integration tests
+npm run test:integration
 
 # Run tests with coverage
 npm run test:coverage
@@ -144,6 +162,62 @@ The server is built with:
 - Zod for input validation
 - Jest for unit testing
 
+## Troubleshooting
+
+### Common Issues
+
+#### SERPER_API_KEY not found
+```
+Error: Configuration error: Missing or invalid SERPER_API_KEY
+```
+
+**Solution:**
+```bash
+# Set the API key in your environment
+export SERPER_API_KEY="your-api-key-here"
+
+# Or add to .env file
+echo "SERPER_API_KEY=your-api-key-here" >> .env
+```
+
+#### Authentication Failed
+```
+Error: Authentication failed for serper
+```
+
+**Solution:**
+1. Verify your API key is correct
+2. Check if the key is active at https://serper.dev/dashboard
+3. Ensure you haven't exceeded your plan limits
+
+#### Rate Limit Exceeded
+```
+Error: Rate limit exceeded for serper
+```
+
+**Solution:**
+1. Wait a few minutes before retrying
+2. Reduce the numberOfQuotes parameter
+3. Space out your requests over time
+4. Consider upgrading your Serper.dev plan
+
+#### No Quotes Found
+If the server returns an empty quotes array:
+1. Check the person's name spelling
+2. Try without a topic filter first
+3. Use more common name variations
+4. Ensure the person is publicly known
+
+### Debug Mode
+
+Enable debug logging for detailed troubleshooting:
+
+```bash
+export LOG_LEVEL=debug
+export NODE_ENV=development
+npx mcp-quotes-server
+```
+
 ## Contributing
 
 1. Fork the repository
@@ -160,3 +234,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Built using the [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - Powered by [Serper.dev](https://serper.dev) for web search capabilities
+- Enhanced with comprehensive error handling and user guidance

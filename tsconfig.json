@@ -5,7 +5,7 @@
     "lib": ["ES2022"],
     "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -31,6 +31,6 @@
     "checkJs": false,
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "coverage", "tests"]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "coverage"]
 }

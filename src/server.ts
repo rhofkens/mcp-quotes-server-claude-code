@@ -175,3 +175,10 @@ export class QuotesServer {
     }
   }
 }
+
+/**
+ * Factory function to create a quotes server instance
+ */
+export async function createQuotesServer(): Promise<QuotesServer> {
+  return new QuotesServer();
+}

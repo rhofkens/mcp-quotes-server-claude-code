@@ -64,14 +64,19 @@ export class BaseError extends Error {
    * Convert error to JSON representation
    */
   toJSON(): Record<string, unknown> {
-    return {
+    const json: Record<string, unknown> = {
       name: this.name,
       message: this.message,
       code: this.code,
       statusCode: this.statusCode,
       details: this.details,
-      ...(isDevelopment() && { stack: this.stack }),
     };
+    
+    if (isDevelopment() && this.stack) {
+      json['stack'] = this.stack;
+    }
+    
+    return json;
   }
   
   /**
@@ -128,9 +133,12 @@ export class ValidationError extends BaseError {
   
   override getUserMessage(): string {
     if (this.field) {
-      return `Invalid value for field '${this.field}': ${this.message}`;
+      if (this.field === 'email') {
+        return `Invalid value for field '${this.field}': ${this.message}. The email field is not a standard field for the quote tool. Please check the available fields.`;
+      }
+      return `Invalid value for field '${this.field}': ${this.message}. Please refer to the prompt template resource for the correct format.`;
     }
-    return `Validation error: ${this.message}`;
+    return `Validation error: ${this.message}. Please check that all required parameters are provided correctly.`;
   }
 }
 
@@ -168,9 +176,9 @@ export class APIError extends BaseError {
       case ErrorCode.API_TIMEOUT:
         return 'The request timed out. Please try again.';
       case ErrorCode.API_RATE_LIMIT:
-        return 'Rate limit exceeded. Please try again later.';
+        return 'Rate limit exceeded. Please wait a few minutes before making more requests. Consider reducing the number of quotes requested.';
       case ErrorCode.API_UNAUTHORIZED:
-        return 'Authentication failed. Please check your API credentials.';
+        return 'Authentication failed. Please check your API key.';
       case ErrorCode.API_NOT_FOUND:
         return 'The requested resource was not found.';
       default:
@@ -217,7 +225,8 @@ export class NetworkError extends APIError {
   }
   
   override getUserMessage(): string {
-    return 'Network error: Unable to connect to the service. Please check your internet connection.';
+    const serviceInfo = this.service ? ` to ${this.service}` : '';
+    return `Network error: Unable to connect${serviceInfo}. Please check your internet connection and ensure the service is accessible. If using a proxy or firewall, ensure it allows HTTPS connections to external APIs.`;
   }
 }
 
@@ -234,7 +243,8 @@ export class AuthenticationError extends APIError {
   }
   
   override getUserMessage(): string {
-    return 'Authentication failed: Please check your API credentials.';
+    const serviceInfo = this.service ? ` for ${this.service}` : '';
+    return `Authentication failed${serviceInfo}. Please verify:\n1. Your SERPER_API_KEY is correctly set\n2. The API key is valid and active\n3. You have not exceeded your plan limits\nGet a new API key at https://serper.dev if needed.`;
   }
 }
 
@@ -251,7 +261,8 @@ export class RateLimitError extends APIError {
   }
   
   override getUserMessage(): string {
-    return 'Rate limit exceeded: Please wait before making more requests.';
+    const serviceInfo = this.service ? ` for ${this.service}` : '';
+    return `Rate limit exceeded${serviceInfo}. To avoid this:\n1. Wait a few minutes before retrying\n2. Reduce the number of quotes requested\n3. Space out your requests over time\n4. Consider upgrading your API plan if this happens frequently`;
   }
 }
 

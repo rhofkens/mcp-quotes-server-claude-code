@@ -7,6 +7,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { getQuotesTool, handleGetQuotes } from './getQuotes.js';
+import { getResilientQuotesTool, handleGetResilientQuotes } from './getResilientQuotes.js';
 
 // Tool handler type
 export type ToolHandler = (args: unknown) => Promise<unknown>;
@@ -27,6 +28,10 @@ export const toolRegistry: ToolRegistry = {
   getQuotes: {
     definition: getQuotesTool,
     handler: handleGetQuotes
+  },
+  getResilientQuotes: {
+    definition: getResilientQuotesTool,
+    handler: handleGetResilientQuotes
   }
   // Add more tools here as they are implemented:
   // searchQuotes: { definition: searchQuotesTool, handler: handleSearchQuotes },
@@ -42,3 +47,4 @@ export const tools = Object.values(toolRegistry).map(t => t.definition);
 
 // Export individual tools for direct access
 export { getQuotesTool, handleGetQuotes } from './getQuotes.js';
+export { getResilientQuotesTool, handleGetResilientQuotes, getQuotesHealthStatus, prewarmQuotesCache } from './getResilientQuotes.js';

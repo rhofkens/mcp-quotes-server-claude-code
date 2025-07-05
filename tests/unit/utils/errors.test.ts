@@ -2,7 +2,7 @@
  * Unit tests for error handling utilities
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import {
   BaseError,
   MCPError,
@@ -106,13 +106,13 @@ describe('Error Handling Utilities', () => {
     it('should format user message with field name', () => {
       const error = new ValidationError('must be a valid email', 'userEmail');
       
-      expect(error.getUserMessage()).toBe("Invalid value for field 'userEmail': must be a valid email");
+      expect(error.getUserMessage()).toBe("Invalid value for field 'userEmail': must be a valid email. Please refer to the prompt template resource for the correct format.");
     });
     
     it('should format user message without field name', () => {
       const error = new ValidationError('Invalid input format');
       
-      expect(error.getUserMessage()).toBe('Validation error: Invalid input format');
+      expect(error.getUserMessage()).toBe('Validation error: Invalid input format. Please check that all required parameters are provided correctly.');
     });
   });
   
@@ -152,10 +152,10 @@ describe('Error Handling Utilities', () => {
       expect(timeout.getUserMessage()).toBe('The request timed out. Please try again.');
       
       const rateLimit = new APIError('Rate limit', ErrorCode.API_RATE_LIMIT);
-      expect(rateLimit.getUserMessage()).toBe('Rate limit exceeded. Please try again later.');
+      expect(rateLimit.getUserMessage()).toBe('Rate limit exceeded. Please wait a few minutes before making more requests. Consider reducing the number of quotes requested.');
       
       const unauthorized = new APIError('Unauthorized', ErrorCode.API_UNAUTHORIZED);
-      expect(unauthorized.getUserMessage()).toBe('Authentication failed. Please check your API credentials.');
+      expect(unauthorized.getUserMessage()).toBe('Authentication failed. Please check your API key.');
       
       const notFound = new APIError('Not found', ErrorCode.API_NOT_FOUND);
       expect(notFound.getUserMessage()).toBe('The requested resource was not found.');
@@ -225,7 +225,7 @@ describe('Error Handling Utilities', () => {
     it('should format error for user display', () => {
       const baseError = new ValidationError('Invalid input', 'email');
       expect(ErrorFormatter.formatForUser(baseError))
-        .toBe("Invalid value for field 'email': Invalid input");
+        .toBe("Invalid value for field 'email': Invalid input. The email field is not a standard field for the quote tool. Please check the available fields.");
       
       const regularError = new Error('Technical details');
       expect(ErrorFormatter.formatForUser(regularError))
@@ -258,7 +258,7 @@ describe('Error Handling Utilities', () => {
       expect(wrapped.message).toBe('Failed to process request: Invalid input');
       expect(wrapped.code).toBe(ErrorCode.VALIDATION_ERROR);
       expect(wrapped.statusCode).toBe(400);
-      expect(wrapped.details?.originalError).toBeDefined();
+      expect(wrapped.details?.['originalError']).toBeDefined();
     });
     
     it('should wrap regular Error', () => {
@@ -268,7 +268,7 @@ describe('Error Handling Utilities', () => {
       expect(wrapped.message).toBe('Database error: Connection failed');
       expect(wrapped.code).toBe(ErrorCode.API_ERROR);
       expect(wrapped.statusCode).toBe(500);
-      expect(wrapped.details?.originalError).toBe('Connection failed');
+      expect(wrapped.details?.['originalError']).toBe('Connection failed');
     });
     
     it('should wrap unknown error', () => {
@@ -276,7 +276,7 @@ describe('Error Handling Utilities', () => {
       
       expect(wrapped.message).toBe('Operation failed');
       expect(wrapped.code).toBe(ErrorCode.UNKNOWN_ERROR);
-      expect(wrapped.details?.originalError).toBe('String error');
+      expect(wrapped.details?.['originalError']).toBe('String error');
     });
   });
   
@@ -320,7 +320,7 @@ describe('Error Handling Utilities', () => {
       expect(result).toBeInstanceOf(BaseError);
       expect(result.message).toBe('Regular error');
       expect(result.code).toBe(ErrorCode.INTERNAL_ERROR);
-      expect(result.details?.originalError).toBe('Error');
+      expect(result.details?.['originalError']).toBe('Error');
     });
     
     it('should convert unknown value to BaseError', () => {
@@ -329,7 +329,7 @@ describe('Error Handling Utilities', () => {
       expect(result).toBeInstanceOf(BaseError);
       expect(result.message).toBe('An unknown error occurred');
       expect(result.code).toBe(ErrorCode.UNKNOWN_ERROR);
-      expect(result.details?.originalError).toBe('String error');
+      expect(result.details?.['originalError']).toBe('String error');
     });
   });
 });

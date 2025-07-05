@@ -60,12 +60,23 @@ export interface SerperApiResponse {
  * Prompt template variable definition
  */
 export interface PromptTemplateVariable {
-  /** Variable name */
-  name: string;
   /** Description of the variable */
   description: string;
   /** Whether the variable is required */
   required: boolean;
+  /** Type of the variable */
+  type: 'string' | 'number' | 'array';
+  /** Default value */
+  default?: any;
+  /** Example values */
+  examples?: string[];
+  /** Constraints for the variable */
+  constraints?: {
+    minimum?: number;
+    maximum?: number;
+    enum?: string[];
+    pattern?: string;
+  };
 }
 
 /**
@@ -75,5 +86,23 @@ export interface PromptTemplateResponse {
   /** The template string */
   template: string;
   /** Variables used in the template */
-  variables: PromptTemplateVariable[];
+  variables: Record<string, PromptTemplateVariable>;
+  /** Template metadata */
+  metadata?: {
+    version: string;
+    name: string;
+    description: string;
+    created: string;
+    lastModified: string;
+    category: 'basic' | 'advanced' | 'research' | 'creative';
+  };
+  /** Usage instructions */
+  instructions?: string;
+  /** Example usages */
+  examples?: Array<{
+    name: string;
+    description: string;
+    request: string;
+    expectedFormat: string;
+  }>;
 }
