@@ -2,18 +2,19 @@
  * Unit tests for getQuotes tool
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest, afterEach } from '@jest/globals';
 
-import { SerperClient } from '../../../src/services/serperClient.js';
-import { getQuotesTool, getQuotes, handleGetQuotes } from '../../../src/tools/getQuotes.js';
-import type { ISerperSearchResult } from '../../../src/types/quotes.js';
-import { ValidationError, NetworkError, AuthenticationError } from '../../../src/utils/errors.js';
+// Set up environment for testing
+process.env['SERPER_API_KEY'] = 'test-api-key';
 
-// Mock the SerperClient
-jest.mock('../../../src/services/serperClient.js');
+// Create mock implementations with proper typing
+const mockSearchQuotes = jest.fn() as jest.MockedFunction<(params: any) => Promise<any[]>>;
+const mockBuildQuoteSearchQuery = jest.fn() as jest.MockedFunction<(person: string, topic?: string) => string>;
+const mockExtractQuoteFromSnippet = jest.fn() as jest.MockedFunction<(snippet: string) => string | null>;
+const mockGetCircuitBreakerStatus = jest.fn() as jest.MockedFunction<() => any>;
 
-// Mock the logger
-jest.mock('../../../src/utils/logger.js', () => ({
+// Use unstable_mockModule for ES modules
+await jest.unstable_mockModule('../../../src/utils/logger.js', () => ({
   logger: {
     info: jest.fn(),
     warn: jest.fn(),
@@ -22,9 +23,29 @@ jest.mock('../../../src/utils/logger.js', () => ({
   }
 }));
 
+await jest.unstable_mockModule('../../../src/services/serperClient.js', () => ({
+  serperClient: {
+    searchQuotes: mockSearchQuotes,
+    buildQuoteSearchQuery: mockBuildQuoteSearchQuery,
+    extractQuoteFromSnippet: mockExtractQuoteFromSnippet,
+    getCircuitBreakerStatus: mockGetCircuitBreakerStatus
+  },
+  SerperClient: jest.fn().mockImplementation(() => ({
+    searchQuotes: mockSearchQuotes,
+    buildQuoteSearchQuery: mockBuildQuoteSearchQuery,
+    extractQuoteFromSnippet: mockExtractQuoteFromSnippet,
+    getCircuitBreakerStatus: mockGetCircuitBreakerStatus
+  }))
+}));
+
+// Import modules after mocking
+const { ValidationError, NetworkError, AuthenticationError } = await import('../../../src/utils/errors.js');
+const { getQuotesTool, getQuotes, handleGetQuotes } = await import('../../../src/tools/getQuotes.js');
+
+// Import types
+import type { ISerperSearchResult } from '../../../src/types/quotes.js';
+
 describe('getQuotes Tool', () => {
-  let mockClient: jest.Mocked<SerperClient>;
-  
   // Common mock search results
   const defaultMockSearchResults: ISerperSearchResult[] = [
     {
@@ -42,25 +63,32 @@ describe('getQuotes Tool', () => {
   ];
   
   beforeEach(() => {
+    // Use fake timers to control async behavior
+    jest.useFakeTimers();
     jest.clearAllMocks();
     
-    // Create a mock client instance
-    mockClient = {
-      searchQuotes: jest.fn(),
-      buildQuoteSearchQuery: jest.fn(),
-      extractQuoteFromSnippet: jest.fn(),
-      getCircuitBreakerStatus: jest.fn().mockReturnValue({
-        state: 'CLOSED',
-        canExecute: true,
-        consecutiveFailures: 0,
-        lastFailureTime: null,
-        nextResetTime: null
-      })
-    } as unknown as jest.Mocked<SerperClient>;
+    // Reset all mock implementations
+    mockSearchQuotes.mockReset();
+    mockBuildQuoteSearchQuery.mockReset();
+    mockExtractQuoteFromSnippet.mockReset();
+    mockGetCircuitBreakerStatus.mockReset();
     
-    // Mock the serperClient export
-    (SerperClient as unknown as jest.Mock).mockImplementation(() => mockClient);
-    jest.mocked(require('../../../src/services/serperClient.js')).serperClient = mockClient;
+    // Set default return value for circuit breaker
+    mockGetCircuitBreakerStatus.mockReturnValue({
+      state: 'CLOSED',
+      canExecute: true,
+      consecutiveFailures: 0,
+      lastFailureTime: null,
+      nextResetTime: null
+    });
+  });
+  
+  afterEach(() => {
+    // Clear all timers to prevent open handles
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    // Restore all mocks
+    jest.restoreAllMocks();
   });
   
   describe('Tool Definition', () => {
@@ -148,9 +176,9 @@ describe('getQuotes Tool', () => {
         { snippet: '"Imagination is more important than knowledge."', link: 'https://example.com' }
       ];
       
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes.mockResolvedValue(mockSearchResults);
-      mockClient.extractQuoteFromSnippet.mockReturnValue('Imagination is more important than knowledge.');
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes.mockResolvedValue(mockSearchResults);
+      mockExtractQuoteFromSnippet.mockReturnValue('Imagination is more important than knowledge.');
       
       const result = await handleGetQuotes({
         person: 'Albert Einstein',
@@ -165,9 +193,9 @@ describe('getQuotes Tool', () => {
         { snippet: '"Science without religion is lame."', link: 'https://example.com' }
       ];
       
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes.mockResolvedValue(mockSearchResults);
-      mockClient.extractQuoteFromSnippet.mockReturnValue('Science without religion is lame.');
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes.mockResolvedValue(mockSearchResults);
+      mockExtractQuoteFromSnippet.mockReturnValue('Science without religion is lame.');
       
       const result = await handleGetQuotes({
         person: 'Albert Einstein',
@@ -181,15 +209,15 @@ describe('getQuotes Tool', () => {
   
   describe('Quote Retrieval', () => {
     beforeEach(() => {
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.extractQuoteFromSnippet.mockImplementation((snippet) => {
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockExtractQuoteFromSnippet.mockImplementation((snippet: string) => {
         const match = snippet.match(/"([^"]+)"/);
         return match && match[1] ? match[1] : null;
       });
     });
     
     it('should return requested number of quotes', async () => {
-      mockClient.searchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
+      mockSearchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
       
       const result = await handleGetQuotes({
         person: 'Albert Einstein',
@@ -203,7 +231,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should include person as author', async () => {
-      mockClient.searchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
+      mockSearchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
       
       const result = await handleGetQuotes({
         person: 'Albert Einstein',
@@ -215,7 +243,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should include source URL when available', async () => {
-      mockClient.searchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
+      mockSearchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
       
       const result = await handleGetQuotes({
         person: 'Albert Einstein',
@@ -233,9 +261,9 @@ describe('getQuotes Tool', () => {
       ];
       
       // First search returns duplicates
-      mockClient.searchQuotes.mockResolvedValueOnce(duplicateResults);
+      mockSearchQuotes.mockResolvedValueOnce(duplicateResults);
       // Second broader search returns no additional results
-      mockClient.searchQuotes.mockResolvedValueOnce([]);
+      mockSearchQuotes.mockResolvedValueOnce([]);
       
       const result = await handleGetQuotes({
         person: 'Test Person',
@@ -249,7 +277,7 @@ describe('getQuotes Tool', () => {
     
     it('should handle fewer results than requested', async () => {
       const oneResult: ISerperSearchResult[] = [defaultMockSearchResults[0]!];
-      mockClient.searchQuotes
+      mockSearchQuotes
         .mockResolvedValueOnce(oneResult)
         .mockResolvedValueOnce([]); // No additional results
       
@@ -263,7 +291,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should use topic in search query', async () => {
-      mockClient.searchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
+      mockSearchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
       
       await handleGetQuotes({
         person: 'Albert Einstein',
@@ -271,11 +299,11 @@ describe('getQuotes Tool', () => {
         topic: 'science'
       });
       
-      expect(mockClient.buildQuoteSearchQuery).toHaveBeenCalledWith('Albert Einstein', 'science');
+      expect(mockBuildQuoteSearchQuery).toHaveBeenCalledWith('Albert Einstein', 'science');
     });
     
     it('should try broader search if not enough quotes found', async () => {
-      mockClient.searchQuotes
+      mockSearchQuotes
         .mockResolvedValueOnce([]) // First search returns nothing
         .mockResolvedValueOnce(defaultMockSearchResults); // Broader search returns results
       
@@ -285,15 +313,15 @@ describe('getQuotes Tool', () => {
         topic: 'specific topic'
       });
       
-      expect(mockClient.searchQuotes).toHaveBeenCalledTimes(2);
+      expect(mockSearchQuotes).toHaveBeenCalledTimes(2);
       expect(result.quotes.length).toBeGreaterThan(0);
     });
   });
   
   describe('Error Handling', () => {
     it('should handle network errors', async () => {
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes.mockRejectedValueOnce(
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes.mockRejectedValueOnce(
         new NetworkError('Network connection failed', 'serper')
       );
       
@@ -304,8 +332,8 @@ describe('getQuotes Tool', () => {
     });
     
     it('should handle authentication errors', async () => {
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes.mockRejectedValueOnce(
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes.mockRejectedValueOnce(
         new AuthenticationError('Invalid API key', 'serper')
       );
       
@@ -316,8 +344,8 @@ describe('getQuotes Tool', () => {
     });
     
     it('should handle generic errors', async () => {
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes.mockRejectedValueOnce(
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes.mockRejectedValueOnce(
         new Error('Something went wrong')
       );
       
@@ -333,10 +361,10 @@ describe('getQuotes Tool', () => {
         { snippet: 'Still no quotes' }
       ];
       
-      mockClient.searchQuotes
+      mockSearchQuotes
         .mockResolvedValueOnce(badResults)
         .mockResolvedValueOnce([]); // No additional results
-      mockClient.extractQuoteFromSnippet.mockReturnValue(null);
+      mockExtractQuoteFromSnippet.mockReturnValue(null);
       
       const result = await handleGetQuotes({
         person: 'Test Person',
@@ -349,8 +377,8 @@ describe('getQuotes Tool', () => {
   
   describe('Edge Cases', () => {
     it('should handle empty search results', async () => {
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
       
@@ -363,9 +391,9 @@ describe('getQuotes Tool', () => {
     });
     
     it('should handle person names with special characters', async () => {
-      mockClient.searchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
+      mockSearchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
       
-      mockClient.extractQuoteFromSnippet.mockImplementation((snippet) => {
+      mockExtractQuoteFromSnippet.mockImplementation((snippet: string) => {
         const match = snippet.match(/"([^"]+)"/);
         return match && match[1] ? match[1] : null;
       });
@@ -380,9 +408,9 @@ describe('getQuotes Tool', () => {
     
     it('should handle very long person names', async () => {
       const longName = 'A'.repeat(100);
-      mockClient.searchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
+      mockSearchQuotes.mockResolvedValueOnce(defaultMockSearchResults);
       
-      mockClient.extractQuoteFromSnippet.mockImplementation((snippet) => {
+      mockExtractQuoteFromSnippet.mockImplementation((snippet: string) => {
         const match = snippet.match(/"([^"]+)"/);
         return match && match[1] ? match[1] : null;
       });
@@ -400,8 +428,8 @@ describe('getQuotes Tool', () => {
         { snippet: '"Quote without source"' }
       ];
       
-      mockClient.searchQuotes.mockResolvedValueOnce(noLinkResults);
-      mockClient.extractQuoteFromSnippet.mockReturnValue('Quote without source');
+      mockSearchQuotes.mockResolvedValueOnce(noLinkResults);
+      mockExtractQuoteFromSnippet.mockReturnValue('Quote without source');
       
       const result = await handleGetQuotes({
         person: 'Test Person',
@@ -419,9 +447,9 @@ describe('getQuotes Tool', () => {
         { snippet: '"Test quote"', link: 'https://example.com' }
       ];
       
-      mockClient.buildQuoteSearchQuery.mockReturnValue('search query');
-      mockClient.searchQuotes.mockResolvedValue(mockSearchResults);
-      mockClient.extractQuoteFromSnippet.mockReturnValue('Test quote');
+      mockBuildQuoteSearchQuery.mockReturnValue('search query');
+      mockSearchQuotes.mockResolvedValue(mockSearchResults);
+      mockExtractQuoteFromSnippet.mockReturnValue('Test quote');
       
       const quotes = await getQuotes({
         person: 'Test Person',

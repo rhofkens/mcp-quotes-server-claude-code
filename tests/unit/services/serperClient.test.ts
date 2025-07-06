@@ -5,30 +5,72 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import axios from 'axios';
 
-import { SerperClient } from '../../../src/services/serperClient.js';
+// Create axios mock with proper typing
+const mockPost = jest.fn() as jest.MockedFunction<(url: string, data?: any, config?: any) => Promise<{ data: any }>>;
+
+// Use unstable_mockModule for ES modules
+await jest.unstable_mockModule('axios', () => ({
+  default: {
+    post: mockPost,
+    get: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    patch: jest.fn(),
+    create: jest.fn(() => ({
+      post: mockPost,
+      get: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+      patch: jest.fn()
+    }))
+  },
+  AxiosError: class AxiosError extends Error {
+    code?: string;
+    config?: any;
+    request?: any;
+    response?: any;
+    
+    constructor(message?: string, code?: string, config?: any, request?: any, response?: any) {
+      super(message || '');
+      this.name = 'AxiosError';
+      if (code !== undefined) this.code = code;
+      if (config !== undefined) this.config = config;
+      if (request !== undefined) this.request = request;
+      if (response !== undefined) this.response = response;
+    }
+  }
+}));
+
+// Import after mocking
+const { SerperClient } = await import('../../../src/services/serperClient.js');
+const { ValidationError, APIError } = await import('../../../src/utils/errors.js');
+
+// Import types
 import type { ISerperApiResponse } from '../../../src/types/quotes.js';
-import { ValidationError, APIError } from '../../../src/utils/errors.js';
-
-// Mock axios
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('SerperClient', () => {
-  let client: SerperClient;
+  let client: InstanceType<typeof SerperClient>;
   const mockApiKey = 'test-api-key-123';
   const mockBaseUrl = 'https://google.serper.dev';
 
   beforeEach(() => {
+    // Use fake timers to control async behavior
+    jest.useFakeTimers();
     // Clear all mocks before each test
     jest.clearAllMocks();
+    // Reset the mock post function
+    mockPost.mockReset();
     
     // Create a new client instance
     client = new SerperClient({ apiKey: mockApiKey });
   });
 
   afterEach(() => {
+    // Clear all timers to prevent open handles
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    // Restore all mocks
     jest.restoreAllMocks();
   });
 
@@ -81,13 +123,13 @@ describe('SerperClient', () => {
     };
 
     beforeEach(() => {
-      mockedAxios.post.mockResolvedValue({ data: validResponse });
+      mockPost.mockResolvedValue({ data: validResponse });
     });
 
     it('should search for quotes successfully', async () => {
       const quotes = await client.searchQuotes({ query: 'Albert Einstein quotes', num: 3 });
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         `${mockBaseUrl}/search`,
         {
           q: 'Albert Einstein quotes',
@@ -112,7 +154,7 @@ describe('SerperClient', () => {
     it('should search quotes with topic filter', async () => {
       await client.searchQuotes({ query: 'Albert Einstein science quotes', num: 2 });
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         `${mockBaseUrl}/search`,
         {
           q: 'Albert Einstein science quotes',
@@ -123,7 +165,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle empty search results', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: { organic: [] } });
+      mockPost.mockResolvedValueOnce({ data: { organic: [] } });
 
       const quotes = await client.searchQuotes({ query: 'Unknown Person quotes', num: 5 });
 
@@ -131,7 +173,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle missing organic results', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockPost.mockResolvedValueOnce({ data: {} });
 
       const quotes = await client.searchQuotes({ query: 'Test Person quotes', num: 3 });
 
@@ -152,11 +194,11 @@ describe('SerperClient', () => {
         ]
       };
       
-      mockedAxios.post.mockResolvedValueOnce({ data: limitedResponse });
+      mockPost.mockResolvedValueOnce({ data: limitedResponse });
       const quotes = await client.searchQuotes({ query: 'Albert Einstein quotes', num: 2 });
 
       expect(quotes).toHaveLength(2);
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({ num: 2 }),
         expect.any(Object)
@@ -173,7 +215,7 @@ describe('SerperClient', () => {
         ]
       };
 
-      mockedAxios.post.mockResolvedValueOnce({ data: responseNoLinks });
+      mockPost.mockResolvedValueOnce({ data: responseNoLinks });
 
       const quotes = await client.searchQuotes({ query: 'Test Author quotes', num: 1 });
 
@@ -203,12 +245,12 @@ describe('SerperClient', () => {
         ]
       };
 
-      mockedAxios.post.mockResolvedValueOnce({ data: mixedResponse });
+      mockPost.mockResolvedValueOnce({ data: mixedResponse });
 
       const quotes = await client.searchQuotes({ query: 'Author Name quotes', num: 4 });
 
       expect(quotes).toHaveLength(4);
-      quotes.forEach(quote => {
+      quotes.forEach((quote: any) => {
         expect(quote.snippet).toBeTruthy();
         expect(quote.link).toBeTruthy();
       });
@@ -222,7 +264,7 @@ describe('SerperClient', () => {
     it('should pass query as-is to search API', async () => {
       await client.searchQuotes({ query: '  Albert Einstein   quotes', num: 1 });
 
-      const callArgs = mockedAxios.post.mock.calls[0];
+      const callArgs = mockPost.mock.calls[0];
       if (!callArgs) {throw new Error('No mock calls');}
       expect((callArgs[1] as any).q).toBe('  Albert Einstein   quotes');
     });
@@ -230,7 +272,7 @@ describe('SerperClient', () => {
     it('should pass complex queries as-is', async () => {
       await client.searchQuotes({ query: 'Einstein   physics & relativity   quotes', num: 1 });
 
-      const callArgs = mockedAxios.post.mock.calls[0];
+      const callArgs = mockPost.mock.calls[0];
       if (!callArgs) {throw new Error('No mock calls');}
       expect((callArgs[1] as any).q).toBe('Einstein   physics & relativity   quotes');
     });
@@ -238,7 +280,7 @@ describe('SerperClient', () => {
 
   describe('error handling', () => {
     it('should handle authentication errors (401)', async () => {
-      mockedAxios.post.mockRejectedValueOnce({
+      mockPost.mockRejectedValueOnce({
         response: { status: 401, data: { message: 'Invalid API key' } }
       });
 
@@ -247,7 +289,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle authentication errors (403)', async () => {
-      mockedAxios.post.mockRejectedValueOnce({
+      mockPost.mockRejectedValueOnce({
         response: { status: 403, data: { message: 'Forbidden' } }
       });
 
@@ -256,7 +298,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle rate limit errors (429)', async () => {
-      mockedAxios.post.mockRejectedValueOnce({
+      mockPost.mockRejectedValueOnce({
         response: { 
           status: 429, 
           data: { message: 'Rate limit exceeded' },
@@ -269,14 +311,14 @@ describe('SerperClient', () => {
     });
 
     it('should handle network errors', async () => {
-      mockedAxios.post.mockRejectedValueOnce(new Error('Network error'));
+      mockPost.mockRejectedValueOnce(new Error('Network error'));
 
       await expect(client.searchQuotes({ query: 'Einstein quotes', num: 1 }))
         .rejects.toThrow(APIError);
     });
 
     it('should handle timeouts', async () => {
-      mockedAxios.post.mockRejectedValueOnce({
+      mockPost.mockRejectedValueOnce({
         code: 'ECONNABORTED',
         message: 'Request timeout'
       });
@@ -287,7 +329,7 @@ describe('SerperClient', () => {
 
 
     it('should handle API error responses', async () => {
-      mockedAxios.post.mockResolvedValueOnce({
+      mockPost.mockResolvedValueOnce({
         data: { error: 'Something went wrong' }
       });
 
@@ -313,7 +355,7 @@ describe('SerperClient', () => {
         ]
       };
 
-      mockedAxios.post.mockResolvedValueOnce({ data: malformedResponse });
+      mockPost.mockResolvedValueOnce({ data: malformedResponse });
 
       const quotes = await client.searchQuotes({ query: 'Author quotes', num: 3 });
 
@@ -382,9 +424,11 @@ describe('SerperClient', () => {
   describe('edge cases', () => {
     it('should handle very long person names', async () => {
       const longName = 'A'.repeat(100);
+      mockPost.mockResolvedValueOnce({ data: { organic: [] } });
+      
       await client.searchQuotes({ query: `${longName} quotes`, num: 1 });
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           q: `${longName} quotes`
@@ -394,9 +438,11 @@ describe('SerperClient', () => {
     });
 
     it('should handle special characters in names', async () => {
+      mockPost.mockResolvedValueOnce({ data: { organic: [] } });
+      
       await client.searchQuotes({ query: `"O'Brien & Associates" quotes`, num: 1 });
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           q: `"O'Brien & Associates" quotes`
@@ -415,7 +461,7 @@ describe('SerperClient', () => {
         ]
       };
 
-      mockedAxios.post.mockResolvedValueOnce({ data: smallResponse });
+      mockPost.mockResolvedValueOnce({ data: smallResponse });
 
       const quotes = await client.searchQuotes({ query: 'Author quotes', num: 10 });
 
@@ -424,7 +470,8 @@ describe('SerperClient', () => {
 
     it('should retry on transient errors', async () => {
       // First call fails, second succeeds
-      mockedAxios.post
+      // First call fails, second succeeds
+      mockPost
         .mockRejectedValueOnce(new Error('Temporary failure'))
         .mockResolvedValueOnce({ data: { organic: [{ snippet: 'Valid quote' }] } });
 
