@@ -4,13 +4,15 @@ A Model Context Protocol (MCP) server that provides a simple tool for searching 
 
 ## Features
 
-- **Quote Search**: Search for quotes from any person using web search
+- **Quote Search**: Two tools for quote retrieval - standard and resilient versions
 - **Topic Filtering**: Optionally filter quotes by specific topics
 - **Flexible Results**: Request 1-10 quotes per search
-- **Prompt Template**: Resource providing structured templates for quote requests
+- **Resilience Patterns**: Caching, circuit breaker, retry logic, and fallback mechanisms
+- **Prompt Templates**: Multiple structured templates for different use cases
 - **Enhanced Error Messages**: Actionable error messages with clear recovery steps
-- **Comprehensive Examples**: Extensive usage examples and integration patterns
-- **Robust Error Handling**: Graceful fallbacks and retry mechanisms
+- **Performance Optimization**: Pre-warmed cache, request deduplication
+- **Transport Options**: Both STDIO and HTTP transport modes
+- **Health Monitoring**: Built-in health checks and performance metrics
 - **TypeScript Support**: Full type safety with exported types
 - **MCP Protocol**: Full compliance with MCP standards for use with Claude and other AI assistants
 
@@ -81,14 +83,51 @@ The server will start on `http://localhost:3000/mcp` and accept POST requests fo
 - `MCP_HTTP_HOST`: Host for the HTTP server (default: `localhost`)
 - `MCP_HTTP_PATH`: Path for the MCP endpoint (default: `/mcp`)
 
-#### Testing HTTP Transport
+#### Example HTTP Requests
 
+**Initialize Session:**
 ```bash
-# Start server in HTTP mode
-MCP_TRANSPORT=http SERPER_API_KEY="your-key" npm run dev
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      }
+    }
+  }'
+```
 
-# The server will log the HTTP endpoint URL
-# Use MCP clients that support HTTP transport to connect
+**Call getQuotes Tool:**
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id": "your-session-id" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "getQuotes",
+      "arguments": {
+        "person": "Albert Einstein",
+        "numberOfQuotes": 3,
+        "topic": "science"
+      }
+    }
+  }'
+```
+
+**Health Check:**
+```bash
+curl http://localhost:3000/health
+# Returns: {"status":"ok","transport":"http","sessions":0}
 ```
 
 ## API
@@ -112,18 +151,70 @@ Search for quotes from a specific person.
 }
 ```
 
+#### getResilientQuotes
+Enhanced quote retrieval with resilience patterns including caching, circuit breaker, and automatic fallback.
+
+**Parameters:**
+- `person` (string, required): The name of the person whose quotes you want to find
+- `numberOfQuotes` (number, required): The number of quotes to return (1-10)
+- `topic` (string, optional): A specific topic to filter the quotes by
+
+**Features:**
+- Automatic caching with 1-hour TTL
+- Circuit breaker protection
+- Automatic retries with exponential backoff
+- Fallback to cached data when services are unavailable
+- Returns metadata about cache status
+
+**Example:**
+```json
+{
+  "person": "Maya Angelou",
+  "numberOfQuotes": 3,
+  "topic": "courage"
+}
+```
+
+**Response includes metadata:**
+```json
+{
+  "quotes": [
+    {
+      "text": "I've learned that people will forget what you said...",
+      "author": "Maya Angelou",
+      "source": "https://example.com/angelou-quotes"
+    }
+  ],
+  "metadata": {
+    "cacheHit": true,
+    "fallbackUsed": false,
+    "retryCount": 0,
+    "searchQueries": ["Maya Angelou courage quotes"]
+  }
+}
+```
+
 ### Resources
 
-#### promptTemplate
-Provides a structured template for generating quote-related prompts.
+#### Quote Prompt Templates
+Multiple structured templates for different quote-related use cases.
 
-**URI:** `quotes://prompt-template`
+**Available Templates:**
+- `quote-prompt://default` - Standard template for general use
+- `quote-prompt://research` - Academic research template with citation focus
+- `quote-prompt://creative` - Creative writing and inspiration template
+- `quote-prompt://list` - Lists all available templates
+
+**Example URI:** `quote-prompt://default`
 
 ## Documentation
 
 - [Comprehensive Usage Examples](docs/EXAMPLES.md) - Detailed examples and integration patterns
 - [API Documentation](docs/API.md) - Complete API reference
 - [Testing Guide](TESTING.md) - Testing strategies and examples
+- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment instructions
+- [Performance Guide](docs/PERFORMANCE.md) - Performance benchmarks and optimization
+- [Manual Test Checklist](docs/MANUAL_TEST_CHECKLIST.md) - Pre-release validation checklist
 
 ## Development
 
@@ -150,11 +241,17 @@ npm run build
 - `npm run build` - Build the TypeScript project
 - `npm run dev` - Run in development mode with hot reload
 - `npm test` - Run unit tests
+- `npm run test:unit` - Run unit tests only
 - `npm run test:integration` - Run integration tests
 - `npm run test:coverage` - Run tests with coverage report
+- `npm run test:watch` - Run tests in watch mode
 - `npm run typecheck` - Run TypeScript type checking
 - `npm run lint` - Run ESLint
+- `npm run lint:fix` - Run ESLint with auto-fix
 - `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run clean` - Clean build artifacts
+- `npm run precommit` - Run pre-commit checks
 
 ### Testing
 
@@ -199,6 +296,39 @@ The server is built with:
 - Axios for HTTP requests to Serper.dev
 - Zod for input validation
 - Jest for unit testing
+- Express.js for HTTP transport mode
+
+### Advanced Features
+
+#### Resilience Patterns
+The getResilientQuotes tool implements several resilience patterns:
+
+1. **Caching Layer**
+   - In-memory cache with 1-hour TTL
+   - Automatic cache invalidation
+   - Stale-while-revalidate pattern
+   - Pre-warmed cache for popular queries
+
+2. **Circuit Breaker**
+   - Prevents cascading failures
+   - Automatic recovery testing
+   - Configurable thresholds
+   - Health status monitoring
+
+3. **Retry Logic**
+   - Exponential backoff
+   - Maximum 3 retry attempts
+   - Smart error detection
+
+4. **Fallback Mechanisms**
+   - Stale cache fallback
+   - Partial result handling
+   - Graceful degradation
+
+5. **Rate Limiting**
+   - Request deduplication
+   - API quota management
+   - Burst protection
 
 ## Troubleshooting
 
