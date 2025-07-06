@@ -5,7 +5,7 @@
  * with a single POST endpoint for all MCP communication
  */
 
-import express, { Express, RequestHandler } from 'express';
+import express, { Express, RequestHandler, Response as ExpressResponse } from 'express';
 import { randomUUID } from 'crypto';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
@@ -25,9 +25,10 @@ export class HttpServerTransport implements Transport {
   private app: Express;
   private server: any;
   private sessions: Map<string, {
-    onmessage?: (message: JSONRPCMessage) => void;
-    pendingMessages: JSONRPCMessage[];
+    pendingResponses: Map<string | number, (response: JSONRPCMessage) => void>;
   }> = new Map();
+  private currentResponse?: ExpressResponse;
+  private isStarted = false;
   
   onclose?: () => void;
   onerror?: (error: Error) => void;
@@ -73,7 +74,9 @@ export class HttpServerTransport implements Transport {
         
         logger.debug('HTTP transport received message', { 
           sessionId, 
-          method: (message as any).method 
+          method: (message as any).method,
+          id: (message as any).id,
+          headers: req.headers
         });
         
         // Handle initialization specially
@@ -81,46 +84,30 @@ export class HttpServerTransport implements Transport {
           const newSessionId = randomUUID();
           
           // Create session
-          const session: { onmessage?: (message: JSONRPCMessage) => void; pendingMessages: JSONRPCMessage[] } = {
-            pendingMessages: []
-          };
-          if (this.onmessage) {
-            session.onmessage = this.onmessage;
-          }
-          this.sessions.set(newSessionId, session);
+          this.sessions.set(newSessionId, {
+            pendingResponses: new Map()
+          });
           
           // Process the initialize message
           if (this.onmessage) {
-            // Store the response handler for this request
-            const responsePromise = new Promise<JSONRPCMessage>((resolve) => {
-              const originalOnMessage = this.onmessage;
-              const messageId = (message as any).id;
-              
-              // Temporarily override to capture the response
-              this.onmessage = (response: JSONRPCMessage) => {
-                if ((response as any).id === messageId) {
-                  resolve(response);
-                  // Restore original handler or clear it
-                  if (originalOnMessage) {
-                    this.onmessage = originalOnMessage;
-                  } else {
-                    delete this.onmessage;
-                  }
-                } else {
-                  originalOnMessage?.(response);
-                }
-              };
+            // For initialization, we'll handle the response directly
+            this.currentResponse = res;
+            const messageId = (message as any).id;
+            
+            // Store response handler for this specific request
+            const session = this.sessions.get(newSessionId)!;
+            session.pendingResponses.set(messageId, (response: JSONRPCMessage) => {
+              logger.debug('Sending initialize response', { 
+                sessionId: newSessionId,
+                responseId: (response as any).id 
+              });
+              res.setHeader('Mcp-Session-Id', newSessionId);
+              res.json(response);
+              session.pendingResponses.delete(messageId);
             });
             
-            // Send the message to the server
+            // Send the message to the MCP server
             this.onmessage(message);
-            
-            // Wait for response
-            const response = await responsePromise;
-            
-            // Send response with session ID header
-            res.setHeader('Mcp-Session-Id', newSessionId);
-            res.json(response);
             return;
           } else {
             res.status(500).json({
@@ -148,41 +135,29 @@ export class HttpServerTransport implements Transport {
           }
           
           // Process the message
+          const session = this.sessions.get(sessionId)!;
+          
           if (this.onmessage) {
             // For request messages that expect a response
             if ('id' in message && message.id !== null) {
-              const responsePromise = new Promise<JSONRPCMessage>((resolve) => {
-                const originalOnMessage = this.onmessage;
-                const messageId = message.id;
-                
-                // Temporarily override to capture the response
-                this.onmessage = (response: JSONRPCMessage) => {
-                  if ((response as any).id === messageId) {
-                    resolve(response);
-                    // Restore original handler or clear it
-                    if (originalOnMessage) {
-                      this.onmessage = originalOnMessage;
-                    } else {
-                      delete this.onmessage;
-                    }
-                  } else {
-                    originalOnMessage?.(response);
-                  }
-                };
+              const messageId = message.id;
+              
+              // Store response handler for this specific request
+              session.pendingResponses.set(messageId, (response: JSONRPCMessage) => {
+                logger.debug('Sending response', { 
+                  sessionId,
+                  method: (message as any).method,
+                  responseId: (response as any).id 
+                });
+                res.json(response);
+                session.pendingResponses.delete(messageId);
               });
               
-              // Send the message to the server
+              // Set current response for immediate handling
+              this.currentResponse = res;
+              
+              // Send the message to the MCP server
               this.onmessage(message);
-              
-              // Wait for response with timeout
-              const response = await Promise.race([
-                responsePromise,
-                new Promise<JSONRPCMessage>((_, reject) => 
-                  setTimeout(() => reject(new Error('Response timeout')), 30000)
-                )
-              ]);
-              
-              res.json(response);
               return;
             } else {
               // For notification messages that don't expect a response
@@ -229,15 +204,31 @@ export class HttpServerTransport implements Transport {
   }
   
   async start(): Promise<void> {
+    if (this.isStarted) {
+      logger.warn('HTTP transport already started');
+      return;
+    }
+    
+    // Log startup immediately
+    logger.info('Starting HTTP transport...');
+    
     return new Promise((resolve, reject) => {
       try {
         this.server = this.app.listen(this.options.port, this.options.host, () => {
+          if (this.isStarted) {
+            // Prevent duplicate startup messages
+            return;
+          }
+          this.isStarted = true;
+          
+          const url = `http://${this.options.host}:${this.options.port}${this.options.path}`;
           logger.info('HTTP transport started', {
             host: this.options.host,
             port: this.options.port,
             path: this.options.path,
-            url: `http://${this.options.host}:${this.options.port}${this.options.path}`
+            url
           });
+          console.log(`MCP HTTP Server listening at ${url}`);
           resolve();
         });
         
@@ -258,6 +249,7 @@ export class HttpServerTransport implements Transport {
         this.server.close(() => {
           logger.info('HTTP transport closed');
           this.sessions.clear();
+          this.isStarted = false;
           this.onclose?.();
           resolve();
         });
@@ -269,11 +261,36 @@ export class HttpServerTransport implements Transport {
   
   async send(message: JSONRPCMessage): Promise<void> {
     // This is called by the MCP server to send messages to clients
-    // In HTTP transport, we send responses directly in the request handler
-    // So this is primarily used for the response callback mechanism
-    if (this.onmessage) {
-      // This will be caught by our response handlers above
-      this.onmessage(message);
+    logger.debug('HTTP transport send called', { 
+      method: (message as any).method,
+      id: (message as any).id 
+    });
+    
+    // For responses (they have an id but no method)
+    if ('id' in message && message.id !== null && !('method' in message)) {
+      // Find the pending response handler across all sessions
+      for (const [sessionId, session] of this.sessions) {
+        const handler = session.pendingResponses.get(message.id);
+        if (handler) {
+          logger.debug('Found response handler for message', { id: message.id, sessionId });
+          handler(message);
+          return;
+        }
+      }
+      
+      // If we have a current response object (for immediate responses)
+      if (this.currentResponse && !this.currentResponse.headersSent) {
+        logger.debug('Using current response object', { id: message.id });
+        this.currentResponse.json(message);
+        delete this.currentResponse;
+        return;
+      }
+      
+      logger.warn('No handler found for response', { id: message.id });
     }
+    
+    // For server-initiated messages (notifications)
+    // These would need to be queued or sent via SSE if we supported it
+    logger.debug('Server-initiated message (not supported in basic HTTP)', message);
   }
 }

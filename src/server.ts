@@ -204,6 +204,11 @@ export class QuotesServer {
         tools: Object.keys(toolRegistry),
         resources: Object.keys(resourceRegistry)
       });
+      
+      // For HTTP transport, the endpoint is already logged by the transport
+      if (config.transport === 'stdio') {
+        console.log('MCP server running in STDIO mode');
+      }
     } catch (error) {
       logger.error('Failed to start server', error);
       throw error;
