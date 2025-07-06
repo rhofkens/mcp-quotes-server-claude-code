@@ -1,10 +1,13 @@
 {
   "name": "mcp-quotes-server",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Model Context Protocol (MCP) server for managing and serving quotes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "bin": {
+    "mcp-quotes-server": "./dist/index.js"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
@@ -21,14 +24,26 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run lint && npm run format:check"
+    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "prepublishOnly": "npm run build",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags",
+    "release:patch": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major"
   },
   "keywords": [
     "mcp",
     "model-context-protocol",
     "quotes",
     "server",
-    "typescript"
+    "typescript",
+    "llm",
+    "ai",
+    "claude",
+    "anthropic",
+    "serper",
+    "api"
   ],
   "author": "",
   "license": "MIT",
@@ -57,16 +72,20 @@
     "typescript": "^5.3.3"
   },
   "files": [
-    "dist",
+    "dist/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "docs/"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/mcp-quotes-server.git"
+    "url": "https://github.com/rhofkens/mcp-quotes-server-claude-code.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/mcp-quotes-server/issues"
+    "url": "https://github.com/rhofkens/mcp-quotes-server-claude-code/issues"
   },
-  "homepage": "https://github.com/your-org/mcp-quotes-server#readme"
+  "homepage": "https://github.com/rhofkens/mcp-quotes-server-claude-code#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }

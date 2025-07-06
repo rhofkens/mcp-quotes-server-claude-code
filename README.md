@@ -1,5 +1,9 @@
 # MCP Quotes Server
 
+[![npm version](https://badge.fury.io/js/mcp-quotes-server.svg)](https://www.npmjs.com/package/mcp-quotes-server)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://github.com/yourusername/mcp-quotes-server/workflows/CI/badge.svg)](https://github.com/yourusername/mcp-quotes-server/actions)
+
 A Model Context Protocol (MCP) server that provides a simple tool for searching quotes from famous and not-so-famous people using the Serper.dev API.
 
 ## Features
@@ -18,14 +22,36 @@ A Model Context Protocol (MCP) server that provides a simple tool for searching 
 
 ## Installation
 
+### Global Installation (Recommended)
+
 ```bash
 npm install -g mcp-quotes-server
+```
+
+### Or use directly with npx
+
+```bash
+npx mcp-quotes-server
+```
+
+## Quick Start
+
+```bash
+# Install globally
+npm install -g mcp-quotes-server
+
+# Set your Serper.dev API key
+export SERPER_API_KEY="your-serper-api-key"
+
+# Run the server
+mcp-quotes-server
 ```
 
 ## Usage
 
 ### Running the Server
 
+After global installation:
 ```bash
 # Set your Serper.dev API key
 export SERPER_API_KEY="your-serper-api-key"
@@ -34,17 +60,41 @@ export SERPER_API_KEY="your-serper-api-key"
 mcp-quotes-server
 ```
 
+Or run directly without installation:
+```bash
+# Set your Serper.dev API key
+export SERPER_API_KEY="your-serper-api-key"
+
+# Run with npx
+npx mcp-quotes-server
+```
+
 ### Testing with MCP Inspector
 
 ```bash
 # Test the server using MCP Inspector
-npx @modelcontextprotocol/inspector mcp-quotes-server
+npx @modelcontextprotocol/inspector npx mcp-quotes-server
 ```
 
 ### Using with Claude Desktop
 
 Add the server to your Claude Desktop configuration:
 
+#### For global installation:
+```json
+{
+  "mcpServers": {
+    "quotes": {
+      "command": "mcp-quotes-server",
+      "env": {
+        "SERPER_API_KEY": "your-serper-api-key"
+      }
+    }
+  }
+}
+```
+
+#### Or using npx:
 ```json
 {
   "mcpServers": {
@@ -271,7 +321,7 @@ npm run test:coverage
 # Test the server manually
 npm run dev
 # In another terminal:
-npx @modelcontextprotocol/inspector dist/index.js
+npx @modelcontextprotocol/inspector npx mcp-quotes-server
 ```
 
 ## Configuration
@@ -383,7 +433,9 @@ Enable debug logging for detailed troubleshooting:
 ```bash
 export LOG_LEVEL=debug
 export NODE_ENV=development
-npx mcp-quotes-server
+mcp-quotes-server  # If installed globally
+# OR
+npx mcp-quotes-server  # If using npx
 ```
 
 ## Contributing

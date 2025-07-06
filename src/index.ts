@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * MCP Quotes Server - Main Entry Point
  * 
