@@ -20,10 +20,10 @@ export { validate, QuoteSchemas } from './validation.js';
 
 // Resilience patterns
 export { Cache, QuoteCache, quoteCache, defaultCache } from './cache.js';
-export type { CacheConfig, CacheStats } from './cache.js';
+export type { ICacheConfig, ICacheStats } from './cache.js';
 
 export { CircuitBreaker, CircuitState, createCircuitBreaker } from './circuitBreaker.js';
-export type { CircuitBreakerConfig, CircuitBreakerStats } from './circuitBreaker.js';
+export type { ICircuitBreakerConfig, ICircuitBreakerStats } from './circuitBreaker.js';
 
 export { retry, retryLinear, retryImmediate, createRetryWrapper, Retryable } from './retry.js';
 export type { RetryConfig, RetryStats } from './retry.js';

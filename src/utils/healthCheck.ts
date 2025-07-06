@@ -8,8 +8,7 @@
 import axios from 'axios';
 
 import type { ICacheStats } from './cache.js';
-import { CircuitState } from './circuitBreaker.js';
-import type { ICircuitBreakerStats } from './circuitBreaker.js';
+import { CircuitState, type ICircuitBreakerStats } from './circuitBreaker.js';
 import { logger } from './logger.js';
 
 /**
@@ -323,7 +322,7 @@ export function createCacheHealthCheck(
  */
 export function createCircuitBreakerHealthCheck(
   name: string,
-  getStats: () => CircuitBreakerStats
+  getStats: () => ICircuitBreakerStats
 ): () => Promise<IComponentHealth> {
   return () => {
     const stats = getStats();

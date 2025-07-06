@@ -32,7 +32,7 @@ export interface ICacheStats {
 /**
  * Cache configuration options
  */
-export interface CacheConfig {
+export interface ICacheConfig {
   maxSize?: number;
   defaultTTL?: number; // in milliseconds
   enableStats?: boolean;
@@ -48,7 +48,7 @@ export class Cache<T = unknown> {
   private stats: ICacheStats;
   private readonly enableStats: boolean;
   
-  constructor(config: CacheConfig = {}) {
+  constructor(config: ICacheConfig = {}) {
     this.cache = new Map();
     this.maxSize = config.maxSize || 1000;
     this.defaultTTL = config.defaultTTL || 5 * 60 * 1000; // 5 minutes default

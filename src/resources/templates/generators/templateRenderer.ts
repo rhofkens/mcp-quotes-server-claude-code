@@ -5,10 +5,10 @@
  */
 
 import type {
-  QuoteTemplate,
-  TemplateRenderContext,
-  TemplateRenderResult,
-  PostProcessor
+  IQuoteTemplate,
+  ITemplateRenderContext,
+  ITemplateRenderResult,
+  IPostProcessor
 } from '../../../types/templates.js';
 import {
   OutputFormat
@@ -24,9 +24,9 @@ export class TemplateRenderer {
    * Render a template with given context
    */
   static async render(
-    template: QuoteTemplate,
-    context: TemplateRenderContext
-  ): Promise<TemplateRenderResult> {
+    template: IQuoteTemplate,
+    context: ITemplateRenderContext
+  ): Promise<ITemplateRenderResult> {
     const warnings: string[] = [];
 
     try {
@@ -58,7 +58,7 @@ export class TemplateRenderer {
       output = this.formatOutput(output, format, template.outputFormat.options);
 
       // Build result
-      const result: TemplateRenderResult = {
+      const result: ITemplateRenderResult = {
         output,
         format,
         warnings: warnings.length > 0 ? warnings : []
@@ -275,8 +275,8 @@ export class TemplateRenderer {
    */
   private static async applyPostProcessors(
     content: string,
-    processors: PostProcessor[],
-    template: QuoteTemplate
+    processors: IPostProcessor[],
+    template: IQuoteTemplate
   ): Promise<string> {
     // Sort processors by order
     const sortedProcessors = [...processors].sort((a, b) => 
@@ -297,8 +297,8 @@ export class TemplateRenderer {
    */
   private static async applyPostProcessor(
     content: string,
-    processor: PostProcessor,
-    template: QuoteTemplate
+    processor: IPostProcessor,
+    template: IQuoteTemplate
   ): Promise<string> {
     switch (processor.type) {
       case 'formatter':
@@ -324,7 +324,7 @@ export class TemplateRenderer {
   /**
    * Apply formatter post-processor
    */
-  private static applyFormatter(content: string, processor: PostProcessor): string {
+  private static applyFormatter(content: string, processor: IPostProcessor): string {
     const { name, options } = processor;
 
     switch (name) {
@@ -355,7 +355,7 @@ export class TemplateRenderer {
   /**
    * Apply validator post-processor
    */
-  private static async applyValidator(content: string, processor: PostProcessor): Promise<void> {
+  private static async applyValidator(content: string, processor: IPostProcessor): Promise<void> {
     const { name, options } = processor;
 
     switch (name) {
@@ -385,7 +385,7 @@ export class TemplateRenderer {
   /**
    * Apply transformer post-processor
    */
-  private static applyTransformer(content: string, processor: PostProcessor): string {
+  private static applyTransformer(content: string, processor: IPostProcessor): string {
     const { name, options } = processor;
 
     switch (name) {
@@ -419,8 +419,8 @@ export class TemplateRenderer {
    */
   private static applyEnricher(
     content: string,
-    processor: PostProcessor,
-    template: QuoteTemplate
+    processor: IPostProcessor,
+    template: IQuoteTemplate
   ): string {
     const { name, options } = processor;
 

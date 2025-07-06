@@ -9,7 +9,7 @@
  */
 
 
-import type { SerperSearchResult } from '../types/quotes.js';
+import type { ISerperSearchResult } from '../types/quotes.js';
 import type { QuoteCache} from '../utils/cache.js';
 import { quoteCache } from '../utils/cache.js';
 import type { CircuitBreaker} from '../utils/circuitBreaker.js';
@@ -25,12 +25,12 @@ import { logger } from '../utils/logger.js';
 import { createRetryWrapper } from '../utils/retry.js';
 
 import { SerperClient } from './serperClient.js';
-import type { SerperConfig, SerperSearchParams } from './serperClient.js';
+import type { ISerperConfig, ISerperSearchParams } from './serperClient.js';
 
 /**
  * Resilient client configuration
  */
-export interface ResilientSerperConfig extends SerperConfig {
+export interface ResilientSerperConfig extends ISerperConfig {
   enableCache?: boolean;
   enableCircuitBreaker?: boolean;
   enableRetry?: boolean;
@@ -42,7 +42,7 @@ export interface ResilientSerperConfig extends SerperConfig {
  * Resilient Serper API Client
  */
 export class ResilientSerperClient extends SerperClient {
-  private apiCircuitBreaker: CircuitBreaker<SerperSearchResult[]>;
+  private apiCircuitBreaker: CircuitBreaker<ISerperSearchResult[]>;
   private cache: QuoteCache;
   private retryWrapper: <T>(fn: () => Promise<T>) => Promise<T>;
   private resilientConfig: ResilientSerperConfig;
@@ -65,7 +65,7 @@ export class ResilientSerperClient extends SerperClient {
     this.cache = quoteCache;
     
     // Initialize circuit breaker
-    this.apiCircuitBreaker = createCircuitBreaker<SerperSearchResult[]>('serper-api', {
+    this.apiCircuitBreaker = createCircuitBreaker<ISerperSearchResult[]>('serper-api', {
       failureThreshold: 5,
       successThreshold: 2,
       timeout: 60000, // 1 minute
@@ -105,7 +105,7 @@ export class ResilientSerperClient extends SerperClient {
   /**
    * Enhanced search with resilience patterns
    */
-  override async searchQuotes(params: SerperSearchParams): Promise<SerperSearchResult[]> {
+  override async searchQuotes(params: ISerperSearchParams): Promise<ISerperSearchResult[]> {
     const cacheKey = this.generateCacheKey(params);
     
     // Try cache first if enabled
@@ -122,7 +122,7 @@ export class ResilientSerperClient extends SerperClient {
       // Execute search with resilience patterns
       const searchFunction = () => super.searchQuotes(params);
       
-      let results: SerperSearchResult[];
+      let results: ISerperSearchResult[];
       
       if (this.resilientConfig.enableRetry) {
         results = await this.retryWrapper(searchFunction);
@@ -216,7 +216,7 @@ export class ResilientSerperClient extends SerperClient {
    * Convert search results to quotes for caching
    */
   private searchResultsToQuotes(
-    results: SerperSearchResult[], 
+    results: ISerperSearchResult[], 
     query: string
   ): import('../types/quotes.js').Quote[] {
     const quotes: import('../types/quotes.js').Quote[] = [];
@@ -244,7 +244,7 @@ export class ResilientSerperClient extends SerperClient {
    */
   private quotesToSearchResults(
     quotes: import('../types/quotes.js').Quote[]
-  ): SerperSearchResult[] {
+  ): ISerperSearchResult[] {
     return quotes.map(quote => ({
       title: `${quote.author} Quote`,
       link: quote.source || '',
@@ -256,7 +256,7 @@ export class ResilientSerperClient extends SerperClient {
   /**
    * Get cached fallback data
    */
-  private getCachedFallback(): SerperSearchResult[] {
+  private getCachedFallback(): ISerperSearchResult[] {
     logger.warn('Circuit breaker open, searching cache for any fallback data');
     
     // Try to find any cached data that might be relevant

@@ -5,11 +5,11 @@
  */
 
 import type {
-  QuoteTemplate,
-  TemplateSearchQuery,
-  TemplateRenderContext,
-  TemplateRenderResult,
-  TemplateValidationResult
+  IQuoteTemplate,
+  ITemplateSearchQuery,
+  ITemplateRenderContext,
+  ITemplateRenderResult,
+  ITemplateValidationResult
 } from '../../types/templates.js';
 import {
   TemplateCategory
@@ -98,28 +98,28 @@ export class TemplateManager {
   /**
    * Get a template by ID
    */
-  async getTemplate(id: string, version?: string): Promise<QuoteTemplate | null> {
+  async getTemplate(id: string, version?: string): Promise<IQuoteTemplate | null> {
     return templateRepository.getTemplate(id, version);
   }
 
   /**
    * List all templates in a category
    */
-  async listByCategory(category: TemplateCategory): Promise<QuoteTemplate[]> {
+  async listByCategory(category: TemplateCategory): Promise<IQuoteTemplate[]> {
     return templateRepository.listByCategory(category);
   }
 
   /**
    * Search templates
    */
-  async searchTemplates(query: TemplateSearchQuery): Promise<QuoteTemplate[]> {
+  async searchTemplates(query: ITemplateSearchQuery): Promise<IQuoteTemplate[]> {
     return templateRepository.searchTemplates(query);
   }
 
   /**
    * Validate a template
    */
-  validateTemplate(template: QuoteTemplate): TemplateValidationResult {
+  validateTemplate(template: IQuoteTemplate): ITemplateValidationResult {
     return TemplateValidator.validate(template);
   }
 
@@ -128,8 +128,8 @@ export class TemplateManager {
    */
   async renderTemplate(
     templateId: string,
-    context: TemplateRenderContext
-  ): Promise<TemplateRenderResult> {
+    context: ITemplateRenderContext
+  ): Promise<ITemplateRenderResult> {
     const template = await this.getTemplate(templateId);
     if (!template) {
       throw new Error(`Template not found: ${templateId}`);
@@ -141,7 +141,7 @@ export class TemplateManager {
   /**
    * Save a custom template
    */
-  async saveTemplate(template: QuoteTemplate): Promise<void> {
+  async saveTemplate(template: IQuoteTemplate): Promise<void> {
     // Validate before saving
     const validation = this.validateTemplate(template);
     if (!validation.isValid) {
@@ -160,8 +160,8 @@ export class TemplateManager {
     category?: TemplateCategory;
     tags?: string[];
     purpose?: string;
-  }): Promise<QuoteTemplate[]> {
-    const query: TemplateSearchQuery = {
+  }): Promise<IQuoteTemplate[]> {
+    const query: ITemplateSearchQuery = {
       categories: context.category ? [context.category] : [],
       tags: context.tags || [],
       text: context.purpose || '',

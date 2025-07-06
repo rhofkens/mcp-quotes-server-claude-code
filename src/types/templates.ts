@@ -68,13 +68,13 @@ export interface ITemplateVariable {
   /** Default value if not provided */
   defaultValue?: any;
   /** Validation rules */
-  validation?: VariableValidation;
+  validation?: IVariableValidation;
   /** Example values */
   examples?: any[];
   /** For enum types, allowed values */
   enumValues?: string[];
   /** UI hints for rendering */
-  uiHints?: VariableUIHints;
+  uiHints?: IVariableUIHints;
 }
 
 /**
@@ -158,21 +158,21 @@ export interface ITemplateUsageStats {
  */
 export interface IQuoteTemplate {
   /** Template metadata */
-  metadata: TemplateMetadata;
+  metadata: ITemplateMetadata;
   /** Template content with variable placeholders */
   content: string;
   /** Variable definitions */
   variables: ITemplateVariable[];
   /** Output format configuration */
-  outputFormat: OutputFormatConfig;
+  outputFormat: IOutputFormatConfig;
   /** Parent template ID for inheritance */
   extends?: string;
   /** Template components for composition */
-  components?: TemplateComponent[];
+  components?: ITemplateComponent[];
   /** Post-processing steps */
-  postProcessors?: PostProcessor[];
+  postProcessors?: IPostProcessor[];
   /** Example usage */
-  examples?: TemplateExample[];
+  examples?: ITemplateExample[];
 }
 
 /**
@@ -238,7 +238,7 @@ export interface ITemplateVersion {
   /** Version number */
   version: string;
   /** Template content at this version */
-  template: QuoteTemplate;
+  template: IQuoteTemplate;
   /** Change description */
   changeDescription: string;
   /** Version author */
@@ -254,15 +254,15 @@ export interface ITemplateVersion {
  */
 export interface ITemplateRepository {
   /** Get template by ID */
-  getTemplate(id: string, version?: string): Promise<QuoteTemplate | null>;
+  getTemplate(id: string, version?: string): Promise<IQuoteTemplate | null>;
   /** List templates by category */
-  listByCategory(category: TemplateCategory): Promise<QuoteTemplate[]>;
+  listByCategory(category: TemplateCategory): Promise<IQuoteTemplate[]>;
   /** Search templates */
-  searchTemplates(query: TemplateSearchQuery): Promise<QuoteTemplate[]>;
+  searchTemplates(query: ITemplateSearchQuery): Promise<IQuoteTemplate[]>;
   /** Save template */
-  saveTemplate(template: QuoteTemplate): Promise<void>;
+  saveTemplate(template: IQuoteTemplate): Promise<void>;
   /** Get template versions */
-  getVersionHistory(id: string): Promise<TemplateVersion[]>;
+  getVersionHistory(id: string): Promise<ITemplateVersion[]>;
 }
 
 /**
@@ -327,7 +327,7 @@ export interface ITemplateValidationWarning {
 /**
  * Template generator configuration
  */
-export interface TemplateGeneratorConfig {
+export interface ITemplateGeneratorConfig {
   /** Base template to extend */
   baseTemplate?: string;
   /** Category for generated template */
@@ -343,11 +343,11 @@ export interface TemplateGeneratorConfig {
 /**
  * Template rendering context
  */
-export interface TemplateRenderContext {
+export interface ITemplateRenderContext {
   /** Variable values */
   variables: Record<string, any>;
   /** Rendering options */
-  options?: TemplateRenderOptions;
+  options?: ITemplateRenderOptions;
   /** User context */
   userContext?: Record<string, any>;
 }
@@ -355,7 +355,7 @@ export interface TemplateRenderContext {
 /**
  * Template rendering options
  */
-export interface TemplateRenderOptions {
+export interface ITemplateRenderOptions {
   /** Output format override */
   outputFormat?: OutputFormat;
   /** Strict mode - fail on missing variables */
@@ -369,7 +369,7 @@ export interface TemplateRenderOptions {
 /**
  * Template render result
  */
-export interface TemplateRenderResult {
+export interface ITemplateRenderResult {
   /** Rendered output */
   output: string;
   /** Output format used */
