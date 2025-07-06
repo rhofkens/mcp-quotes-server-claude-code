@@ -284,9 +284,9 @@ export class TemplateManager {
   /**
    * Import template from JSON
    */
-  async importTemplate(jsonString: string): Promise<QuoteTemplate> {
+  async importTemplate(jsonString: string): Promise<IQuoteTemplate> {
     try {
-      const template = JSON.parse(jsonString) as QuoteTemplate;
+      const template = JSON.parse(jsonString) as IQuoteTemplate;
       
       // Convert date strings back to Date objects
       template.metadata.createdAt = new Date(template.metadata.createdAt);
@@ -315,13 +315,13 @@ export class TemplateManager {
   /**
    * Clone an existing template
    */
-  async cloneTemplate(templateId: string, newName: string): Promise<QuoteTemplate> {
+  async cloneTemplate(templateId: string, newName: string): Promise<IQuoteTemplate> {
     const originalTemplate = await this.getTemplate(templateId);
     if (!originalTemplate) {
       throw new Error(`Template not found: ${templateId}`);
     }
 
-    const clonedTemplate: QuoteTemplate = JSON.parse(JSON.stringify(originalTemplate));
+    const clonedTemplate: IQuoteTemplate = JSON.parse(JSON.stringify(originalTemplate));
     
     // Update metadata for clone
     clonedTemplate.metadata.id = `clone-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -348,8 +348,8 @@ export class TemplateManager {
   async getTemplateStatistics(): Promise<{
     totalTemplates: number;
     byCategory: Record<TemplateCategory, number>;
-    mostUsed: QuoteTemplate[];
-    recentlyUpdated: QuoteTemplate[];
+    mostUsed: IQuoteTemplate[];
+    recentlyUpdated: IQuoteTemplate[];
   }> {
     const allTemplates = await this.searchTemplates({ includeDeprecated: false });
     

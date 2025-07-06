@@ -136,7 +136,7 @@ export interface ITemplateMetadata {
   /** Deprecation message if deprecated */
   deprecationMessage?: string;
   /** Usage statistics */
-  usageStats?: TemplateUsageStats;
+  usageStats?: ITemplateUsageStats;
 }
 
 /**

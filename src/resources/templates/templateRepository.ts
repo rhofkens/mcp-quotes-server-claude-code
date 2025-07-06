@@ -5,10 +5,10 @@
  */
 
 import type {
-  QuoteTemplate,
-  TemplateRepository,
-  TemplateSearchQuery,
-  TemplateVersion
+  IQuoteTemplate,
+  ITemplateRepository,
+  ITemplateSearchQuery,
+  ITemplateVersion
 } from '../../types/templates.js';
 import {
   TemplateCategory,
@@ -22,9 +22,9 @@ import { TemplateValidator } from './validators/templateValidator.js';
 /**
  * In-memory template repository implementation
  */
-export class InMemoryTemplateRepository implements TemplateRepository {
-  private templates: Map<string, QuoteTemplate> = new Map();
-  private versions: Map<string, TemplateVersion[]> = new Map();
+export class InMemoryTemplateRepository implements ITemplateRepository {
+  private templates: Map<string, IQuoteTemplate> = new Map();
+  private versions: Map<string, ITemplateVersion[]> = new Map();
 
   constructor() {
     // Initialize with default templates
@@ -34,7 +34,7 @@ export class InMemoryTemplateRepository implements TemplateRepository {
   /**
    * Get template by ID and optional version
    */
-  async getTemplate(id: string, version?: string): Promise<QuoteTemplate | null> {
+  async getTemplate(id: string, version?: string): Promise<IQuoteTemplate | null> {
     if (version) {
       const versionHistory = this.versions.get(id);
       if (versionHistory) {
@@ -50,8 +50,8 @@ export class InMemoryTemplateRepository implements TemplateRepository {
   /**
    * List templates by category
    */
-  async listByCategory(category: TemplateCategory): Promise<QuoteTemplate[]> {
-    const templates: QuoteTemplate[] = [];
+  async listByCategory(category: TemplateCategory): Promise<IQuoteTemplate[]> {
+    const templates: IQuoteTemplate[] = [];
     
     for (const template of this.templates.values()) {
       if (template.metadata.category === category && !template.metadata.deprecated) {
@@ -67,7 +67,7 @@ export class InMemoryTemplateRepository implements TemplateRepository {
   /**
    * Search templates
    */
-  async searchTemplates(query: TemplateSearchQuery): Promise<QuoteTemplate[]> {
+  async searchTemplates(query: ITemplateSearchQuery): Promise<IQuoteTemplate[]> {
     let templates = Array.from(this.templates.values());
 
     // Filter by text search
@@ -76,7 +76,7 @@ export class InMemoryTemplateRepository implements TemplateRepository {
       templates = templates.filter(t => 
         t.metadata.name.toLowerCase().includes(searchText) ||
         t.metadata.description.toLowerCase().includes(searchText) ||
-        t.metadata.tags.some(tag => tag.toLowerCase().includes(searchText))
+        t.metadata.tags.some((tag: string) => tag.toLowerCase().includes(searchText))
       );
     }
 
@@ -90,7 +90,7 @@ export class InMemoryTemplateRepository implements TemplateRepository {
     // Filter by tags
     if (query.tags && query.tags.length > 0) {
       templates = templates.filter(t => 
-        query.tags!.some(tag => t.metadata.tags.includes(tag))
+        query.tags!.some((tag: string) => t.metadata.tags.includes(tag))
       );
     }
 
@@ -140,11 +140,11 @@ export class InMemoryTemplateRepository implements TemplateRepository {
   /**
    * Save template
    */
-  async saveTemplate(template: QuoteTemplate): Promise<void> {
+  async saveTemplate(template: IQuoteTemplate): Promise<void> {
     // Validate template
     const validation = TemplateValidator.validate(template);
     if (!validation.isValid) {
-      throw new Error(`Template validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
+      throw new Error(`Template validation failed: ${validation.errors.map((e: any) => e.message).join(', ')}`);
     }
 
     const existingTemplate = this.templates.get(template.metadata.id);
@@ -188,7 +188,7 @@ export class InMemoryTemplateRepository implements TemplateRepository {
   /**
    * Get version history
    */
-  async getVersionHistory(id: string): Promise<TemplateVersion[]> {
+  async getVersionHistory(id: string): Promise<ITemplateVersion[]> {
     return this.versions.get(id) || [];
   }
 
@@ -196,7 +196,7 @@ export class InMemoryTemplateRepository implements TemplateRepository {
    * Initialize default templates
    */
   private initializeDefaultTemplates(): void {
-    const defaultTemplates: QuoteTemplate[] = [
+    const defaultTemplates: IQuoteTemplate[] = [
       {
         metadata: {
           id: 'basic-quote-request',

@@ -5,11 +5,11 @@
  */
 
 import type {
-  QuoteTemplate,
-  TemplateValidationResult,
-  TemplateValidationError,
-  TemplateValidationWarning,
-  TemplateVariable} from '../../../types/templates.js';
+  IQuoteTemplate,
+  ITemplateValidationResult,
+  ITemplateValidationError,
+  ITemplateValidationWarning,
+  ITemplateVariable} from '../../../types/templates.js';
 import {
   VariableType,
   OutputFormat
@@ -22,9 +22,9 @@ export class TemplateValidator {
   /**
    * Validate a complete template
    */
-  static validate(template: QuoteTemplate): TemplateValidationResult {
-    const errors: TemplateValidationError[] = [];
-    const warnings: TemplateValidationWarning[] = [];
+  static validate(template: IQuoteTemplate): ITemplateValidationResult {
+    const errors: ITemplateValidationError[] = [];
+    const warnings: ITemplateValidationWarning[] = [];
 
     // Validate metadata
     this.validateMetadata(template, errors, warnings);
@@ -52,9 +52,9 @@ export class TemplateValidator {
    * Validate template metadata
    */
   private static validateMetadata(
-    template: QuoteTemplate,
-    errors: TemplateValidationError[],
-    warnings: TemplateValidationWarning[]
+    template: IQuoteTemplate,
+    errors: ITemplateValidationError[],
+    warnings: ITemplateValidationWarning[]
   ): void {
     const { metadata } = template;
 
@@ -113,9 +113,9 @@ export class TemplateValidator {
    * Validate template content
    */
   private static validateContent(
-    template: QuoteTemplate,
-    errors: TemplateValidationError[],
-    warnings: TemplateValidationWarning[]
+    template: IQuoteTemplate,
+    errors: ITemplateValidationError[],
+    warnings: ITemplateValidationWarning[]
   ): void {
     if (!template.content || template.content.trim() === '') {
       errors.push({
@@ -128,10 +128,10 @@ export class TemplateValidator {
 
     // Extract variable placeholders from content
     const placeholders = this.extractPlaceholders(template.content);
-    const definedVariables = new Set(template.variables.map(v => v.name));
+    const definedVariables = new Set(template.variables.map((v: ITemplateVariable) => v.name));
 
     // Check for undefined variables
-    placeholders.forEach(placeholder => {
+    placeholders.forEach((placeholder: string) => {
       if (!definedVariables.has(placeholder)) {
         errors.push({
           code: 'UNDEFINED_VARIABLE',
@@ -142,7 +142,7 @@ export class TemplateValidator {
     });
 
     // Check for unused variables
-    template.variables.forEach(variable => {
+    template.variables.forEach((variable: ITemplateVariable) => {
       if (!placeholders.has(variable.name) && variable.required) {
         warnings.push({
           code: 'UNUSED_VARIABLE',
@@ -157,13 +157,13 @@ export class TemplateValidator {
    * Validate template variables
    */
   private static validateVariables(
-    template: QuoteTemplate,
-    errors: TemplateValidationError[],
-    warnings: TemplateValidationWarning[]
+    template: IQuoteTemplate,
+    errors: ITemplateValidationError[],
+    warnings: ITemplateValidationWarning[]
   ): void {
     const variableNames = new Set<string>();
 
-    template.variables.forEach((variable, index) => {
+    template.variables.forEach((variable: ITemplateVariable, index: number) => {
       // Check for duplicate variable names
       if (variableNames.has(variable.name)) {
         errors.push({
@@ -206,7 +206,7 @@ export class TemplateValidator {
 
       // Validate examples
       if (variable.examples) {
-        variable.examples.forEach((example, exampleIndex) => {
+        variable.examples.forEach((example: any, exampleIndex: number) => {
           const isValidExample = this.validateVariableValue(variable, example);
           if (!isValidExample) {
             warnings.push({
@@ -224,9 +224,9 @@ export class TemplateValidator {
    * Validate output format configuration
    */
   private static validateOutputFormat(
-    template: QuoteTemplate,
-    errors: TemplateValidationError[],
-    _warnings: TemplateValidationWarning[]
+    template: IQuoteTemplate,
+    errors: ITemplateValidationError[],
+    _warnings: ITemplateValidationWarning[]
   ): void {
     if (!template.outputFormat || !template.outputFormat.format) {
       errors.push({
@@ -239,7 +239,7 @@ export class TemplateValidator {
     // Validate alternative formats
     if (template.outputFormat.alternativeFormats) {
       const validFormats = Object.values(OutputFormat);
-      template.outputFormat.alternativeFormats.forEach((format, index) => {
+      template.outputFormat.alternativeFormats.forEach((format: OutputFormat, index: number) => {
         if (!validFormats.includes(format)) {
           errors.push({
             code: 'INVALID_ALTERNATIVE_FORMAT',
@@ -255,9 +255,9 @@ export class TemplateValidator {
    * Validate template examples
    */
   private static validateExamples(
-    template: QuoteTemplate,
-    errors: TemplateValidationError[],
-    warnings: TemplateValidationWarning[]
+    template: IQuoteTemplate,
+    errors: ITemplateValidationError[],
+    warnings: ITemplateValidationWarning[]
   ): void {
     if (!template.examples || template.examples.length === 0) {
       warnings.push({
@@ -269,12 +269,12 @@ export class TemplateValidator {
     }
 
     const requiredVariables = template.variables
-      .filter(v => v.required)
-      .map(v => v.name);
+      .filter((v: ITemplateVariable) => v.required)
+      .map((v: ITemplateVariable) => v.name);
 
-    template.examples.forEach((example, index) => {
+    template.examples.forEach((example: any, index: number) => {
       // Check for missing required variables
-      requiredVariables.forEach(varName => {
+      requiredVariables.forEach((varName: string) => {
         if (!(varName in example.variables)) {
           errors.push({
             code: 'MISSING_REQUIRED_VARIABLE_IN_EXAMPLE',
@@ -285,8 +285,8 @@ export class TemplateValidator {
       });
 
       // Validate variable values in examples
-      Object.entries(example.variables).forEach(([varName, value]) => {
-        const variable = template.variables.find(v => v.name === varName);
+      Object.entries(example.variables).forEach(([varName, value]: [string, any]) => {
+        const variable = template.variables.find((v: ITemplateVariable) => v.name === varName);
         if (!variable) {
           warnings.push({
             code: 'UNKNOWN_VARIABLE_IN_EXAMPLE',
@@ -332,7 +332,7 @@ export class TemplateValidator {
   /**
    * Validate variable value against type
    */
-  private static validateVariableValue(variable: TemplateVariable, value: any): boolean {
+  private static validateVariableValue(variable: ITemplateVariable, value: any): boolean {
     switch (variable.type) {
       case VariableType.STRING:
         return typeof value === 'string';
@@ -364,7 +364,7 @@ export class TemplateValidator {
    * Validate variable value with validation rules
    */
   static validateVariableWithRules(
-    variable: TemplateVariable,
+    variable: ITemplateVariable,
     value: any
   ): { isValid: boolean; error?: string } {
     // Type validation

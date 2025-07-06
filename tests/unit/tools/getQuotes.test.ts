@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { SerperClient } from '../../../src/services/serperClient.js';
 import { getQuotesTool, getQuotes, handleGetQuotes } from '../../../src/tools/getQuotes.js';
-import type { SerperSearchResult } from '../../../src/types/quotes.js';
+import type { ISerperSearchResult } from '../../../src/types/quotes.js';
 import { ValidationError, NetworkError, AuthenticationError } from '../../../src/utils/errors.js';
 
 // Mock the SerperClient
@@ -26,7 +26,7 @@ describe('getQuotes Tool', () => {
   let mockClient: jest.Mocked<SerperClient>;
   
   // Common mock search results
-  const defaultMockSearchResults: SerperSearchResult[] = [
+  const defaultMockSearchResults: ISerperSearchResult[] = [
     {
       snippet: '"Imagination is more important than knowledge."',
       link: 'https://example.com/einstein-quotes'
@@ -144,7 +144,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should accept valid parameters without topic', async () => {
-      const mockSearchResults: SerperSearchResult[] = [
+      const mockSearchResults: ISerperSearchResult[] = [
         { snippet: '"Imagination is more important than knowledge."', link: 'https://example.com' }
       ];
       
@@ -161,7 +161,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should accept valid parameters with topic', async () => {
-      const mockSearchResults: SerperSearchResult[] = [
+      const mockSearchResults: ISerperSearchResult[] = [
         { snippet: '"Science without religion is lame."', link: 'https://example.com' }
       ];
       
@@ -226,7 +226,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should filter duplicates', async () => {
-      const duplicateResults: SerperSearchResult[] = [
+      const duplicateResults: ISerperSearchResult[] = [
         { snippet: '"Same quote"', link: 'https://example1.com' },
         { snippet: '"Same quote"', link: 'https://example2.com' },
         { snippet: '"Different quote"', link: 'https://example3.com' }
@@ -248,7 +248,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should handle fewer results than requested', async () => {
-      const oneResult: SerperSearchResult[] = [defaultMockSearchResults[0]!];
+      const oneResult: ISerperSearchResult[] = [defaultMockSearchResults[0]!];
       mockClient.searchQuotes
         .mockResolvedValueOnce(oneResult)
         .mockResolvedValueOnce([]); // No additional results
@@ -328,7 +328,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should handle search results with no extractable quotes', async () => {
-      const badResults: SerperSearchResult[] = [
+      const badResults: ISerperSearchResult[] = [
         { snippet: 'No quotes here' },
         { snippet: 'Still no quotes' }
       ];
@@ -396,7 +396,7 @@ describe('getQuotes Tool', () => {
     });
     
     it('should handle search results without links', async () => {
-      const noLinkResults: SerperSearchResult[] = [
+      const noLinkResults: ISerperSearchResult[] = [
         { snippet: '"Quote without source"' }
       ];
       
@@ -415,7 +415,7 @@ describe('getQuotes Tool', () => {
   
   describe('getQuotes helper function', () => {
     it('should return array of quotes directly', async () => {
-      const mockSearchResults: SerperSearchResult[] = [
+      const mockSearchResults: ISerperSearchResult[] = [
         { snippet: '"Test quote"', link: 'https://example.com' }
       ];
       

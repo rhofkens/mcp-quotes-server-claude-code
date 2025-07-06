@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import axios from 'axios';
 
 import { SerperClient } from '../../../src/services/serperClient.js';
-import type { SerperApiResponse } from '../../../src/types/quotes.js';
+import type { ISerperApiResponse } from '../../../src/types/quotes.js';
 import { ValidationError, APIError } from '../../../src/utils/errors.js';
 
 // Mock axios
@@ -61,7 +61,7 @@ describe('SerperClient', () => {
   });
 
   describe('searchQuotes', () => {
-    const validResponse: SerperApiResponse = {
+    const validResponse: ISerperApiResponse = {
       organic: [
         {
           snippet: 'Imagination is more important than knowledge. - Albert Einstein',
@@ -139,7 +139,7 @@ describe('SerperClient', () => {
     });
 
     it('should pass num parameter to API', async () => {
-      const limitedResponse: SerperApiResponse = {
+      const limitedResponse: ISerperApiResponse = {
         organic: [
           {
             snippet: 'Imagination is more important than knowledge. - Albert Einstein',
@@ -164,7 +164,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle quotes with missing source links', async () => {
-      const responseNoLinks: SerperApiResponse = {
+      const responseNoLinks: ISerperApiResponse = {
         organic: [
           {
             snippet: 'Test quote without link - Test Author',
@@ -182,7 +182,7 @@ describe('SerperClient', () => {
     });
 
     it('should extract quotes from various snippet formats', async () => {
-      const mixedResponse: SerperApiResponse = {
+      const mixedResponse: ISerperApiResponse = {
         organic: [
           {
             snippet: '"Quoted text" - Author Name',
@@ -296,7 +296,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle malformed snippets gracefully', async () => {
-      const malformedResponse: SerperApiResponse = {
+      const malformedResponse: ISerperApiResponse = {
         organic: [
           {
             snippet: null as any,
@@ -406,7 +406,7 @@ describe('SerperClient', () => {
     });
 
     it('should handle requesting more quotes than available', async () => {
-      const smallResponse: SerperApiResponse = {
+      const smallResponse: ISerperApiResponse = {
         organic: [
           {
             snippet: 'Only one quote - Author',

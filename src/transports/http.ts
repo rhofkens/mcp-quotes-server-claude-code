@@ -100,15 +100,17 @@ export class HttpServerTransport implements Transport {
             
             // Store response handler for this specific request
             const session = this.sessions.get(newSessionId)!;
-            session.pendingResponses.set(messageId, (response: JSONRPCMessage) => {
+            if (messageId !== undefined) {
+              session.pendingResponses.set(messageId, (response: JSONRPCMessage) => {
               logger.debug('Sending initialize response', { 
                 sessionId: newSessionId,
                 responseId: 'id' in response ? (response as {id: string | number}).id : undefined 
               });
               res.setHeader('Mcp-Session-Id', newSessionId);
               res.json(response);
-              session.pendingResponses.delete(messageId);
-            });
+                session.pendingResponses.delete(messageId);
+              });
+            }
             
             // Send the message to the MCP server
             this.onmessage(message);
@@ -210,7 +212,7 @@ export class HttpServerTransport implements Transport {
   start(): Promise<void> {
     if (this.isStarted) {
       logger.warn('HTTP transport already started');
-      return;
+      return Promise.resolve();
     }
     
     // Log startup immediately
@@ -263,7 +265,7 @@ export class HttpServerTransport implements Transport {
     });
   }
   
-  send(message: JSONRPCMessage): void {
+  async send(message: JSONRPCMessage): Promise<void> {
     // This is called by the MCP server to send messages to clients
     logger.debug('HTTP transport send called', { 
       method: 'method' in message ? (message as {method: string}).method : undefined,

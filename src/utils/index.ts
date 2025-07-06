@@ -36,4 +36,4 @@ export {
   createCacheHealthCheck,
   createCircuitBreakerHealthCheck,
 } from './healthCheck.js';
-export type { ComponentHealth, SystemHealth, HealthCheckConfig } from './healthCheck.js';
+export type { IComponentHealth, ISystemHealth, IHealthCheckConfig } from './healthCheck.js';

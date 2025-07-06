@@ -138,8 +138,8 @@ export class ErrorContextBuilder {
 /**
  * Generate recovery suggestions based on error type
  */
-export function generateRecoverySuggestions(error: BaseError): ErrorRecovery {
-  const recovery: ErrorRecovery = {
+export function generateRecoverySuggestions(error: BaseError): IErrorRecovery {
+  const recovery: IErrorRecovery = {
     suggestions: [],
     retryable: false,
     alternativeActions: [],
@@ -330,7 +330,7 @@ function sleep(ms: number): Promise<void> {
  */
 export function logError(
   error: unknown,
-  context?: Partial<ErrorContext>,
+  context?: Partial<IErrorContext>,
   severity: 'error' | 'warn' | 'fatal' = 'error'
 ): void {
   const baseError = error instanceof BaseError 

@@ -10,15 +10,15 @@ import {
   promptTemplateResource,
   promptTemplateHandler
 } from '../../../src/resources/promptTemplate.js';
-import type { PromptTemplateResponse, PromptTemplateVariable } from '../../../src/types/quotes.js';
+import type { IPromptTemplateResponse, IPromptTemplateVariable } from '../../../src/types/quotes.js';
 
 // Helper functions for tests
-async function getPromptTemplate(): Promise<PromptTemplateResponse> {
+async function getPromptTemplate(): Promise<IPromptTemplateResponse> {
   const content = await promptTemplateHandler('quote-prompt://default');
   return JSON.parse(content);
 }
 
-async function handlePromptTemplate(): Promise<PromptTemplateResponse> {
+async function handlePromptTemplate(): Promise<IPromptTemplateResponse> {
   return getPromptTemplate();
 }
 
@@ -51,7 +51,7 @@ describe('Prompt Template Resource', () => {
   });
 
   describe('getPromptTemplate', () => {
-    let response: PromptTemplateResponse;
+    let response: IPromptTemplateResponse;
 
     beforeEach(async () => {
       response = await getPromptTemplate();
@@ -132,7 +132,7 @@ describe('Prompt Template Resource', () => {
       });
 
       describe('person variable', () => {
-        let personVar: PromptTemplateVariable;
+        let personVar: IPromptTemplateVariable;
 
         beforeEach(() => {
           personVar = response.variables['person']!;
@@ -148,7 +148,7 @@ describe('Prompt Template Resource', () => {
       });
 
       describe('topic variable', () => {
-        let topicVar: PromptTemplateVariable;
+        let topicVar: IPromptTemplateVariable;
 
         beforeEach(() => {
           topicVar = response.variables['topic']!;
@@ -162,7 +162,7 @@ describe('Prompt Template Resource', () => {
       });
 
       describe('numberOfQuotes variable', () => {
-        let numberOfQuotesVar: PromptTemplateVariable;
+        let numberOfQuotesVar: IPromptTemplateVariable;
 
         beforeEach(() => {
           numberOfQuotesVar = response.variables['numberOfQuotes']!;
@@ -199,7 +199,7 @@ describe('Prompt Template Resource', () => {
       });
 
       it('should have consistent variable structure', () => {
-        Object.values(response.variables).forEach(variable => {
+        Object.values(response.variables).forEach((variable: any) => {
           expect(variable).toHaveProperty('description');
           expect(variable).toHaveProperty('required');
           expect(variable).toHaveProperty('type');
@@ -214,8 +214,8 @@ describe('Prompt Template Resource', () => {
 
       it('should have proper required/optional distribution', () => {
         const variables = Object.values(response.variables);
-        const requiredVars = variables.filter(v => v.required);
-        const optionalVars = variables.filter(v => !v.required);
+        const requiredVars = variables.filter((v: any) => v.required);
+        const optionalVars = variables.filter((v: any) => !v.required);
         
         expect(requiredVars).toHaveLength(2); // person, numberOfQuotes
         expect(optionalVars).toHaveLength(1); // topic
@@ -240,7 +240,7 @@ describe('Prompt Template Resource', () => {
         const variableReferences = template.match(/\{(\w+)\}/g) || [];
         const referencedVars = new Set<string>();
         
-        variableReferences.forEach(ref => {
+        variableReferences.forEach((ref: string) => {
           const match = ref.match(/\{(\w+)\}/);
           if (match) {
             if (match[1]) {referencedVars.add(match[1]);}
@@ -284,7 +284,7 @@ describe('Prompt Template Resource', () => {
       expect(placeholders.length).toBeGreaterThan(0);
       
       // All placeholders should be defined in variables
-      placeholders.forEach(placeholder => {
+      placeholders.forEach((placeholder: string) => {
         const varName = placeholder.slice(1, -1);
         expect(Object.keys(response.variables)).toContain(varName);
       });

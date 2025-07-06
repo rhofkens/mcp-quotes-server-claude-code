@@ -58,7 +58,7 @@ export interface IHealthCheckConfig {
 export class HealthCheckManager {
   private checks: Map<string, () => Promise<IComponentHealth>>;
   private lastResults: Map<string, IComponentHealth>;
-  private checkInterval?: NodeJS.Timeout;
+  private checkInterval?: NodeJS.Timeout | undefined;
   private startTime: number;
   private config: Required<IHealthCheckConfig>;
   
@@ -208,7 +208,7 @@ export class HealthCheckManager {
   /**
    * Timeout helper for health checks
    */
-  private timeout(name: string): Promise<never> {
+  private timeout(name: string): Promise<IComponentHealth> {
     return new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error(`Health check '${name}' timed out after ${this.config.timeout}ms`));
@@ -359,7 +359,7 @@ export function createCircuitBreakerHealthCheck(
       name: `circuit-breaker-${name}`,
       status,
       message,
-      details: stats,
+      details: { ...stats } as Record<string, unknown>,
       lastChecked: new Date(),
     });
   };

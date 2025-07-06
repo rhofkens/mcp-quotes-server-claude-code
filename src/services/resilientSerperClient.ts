@@ -9,7 +9,7 @@
  */
 
 
-import type { ISerperSearchResult } from '../types/quotes.js';
+import type { ISerperSearchResult, IQuote } from '../types/quotes.js';
 import type { QuoteCache} from '../utils/cache.js';
 import { quoteCache } from '../utils/cache.js';
 import type { CircuitBreaker} from '../utils/circuitBreaker.js';
@@ -208,7 +208,7 @@ export class ResilientSerperClient extends SerperClient {
   /**
    * Generate cache key for search params
    */
-  private generateCacheKey(params: SerperSearchParams): string {
+  private generateCacheKey(params: ISerperSearchParams): string {
     return `serper:${params.query}:${params.num || 10}`;
   }
   
@@ -218,8 +218,8 @@ export class ResilientSerperClient extends SerperClient {
   private searchResultsToQuotes(
     results: ISerperSearchResult[], 
     query: string
-  ): import('../types/quotes.js').Quote[] {
-    const quotes: import('../types/quotes.js').Quote[] = [];
+  ): IQuote[] {
+    const quotes: IQuote[] = [];
     
     for (const result of results) {
       const quoteText = this.extractQuoteFromSnippet(result.snippet);
@@ -243,7 +243,7 @@ export class ResilientSerperClient extends SerperClient {
    * Convert cached quotes back to search results
    */
   private quotesToSearchResults(
-    quotes: import('../types/quotes.js').Quote[]
+    quotes: IQuote[]
   ): ISerperSearchResult[] {
     return quotes.map(quote => ({
       title: `${quote.author} Quote`,
