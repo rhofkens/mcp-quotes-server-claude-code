@@ -3,10 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { getQuotesTool, getQuotes, handleGetQuotes } from '../../../src/tools/getQuotes.js';
+
 import { SerperClient } from '../../../src/services/serperClient.js';
-import { ValidationError, NetworkError, AuthenticationError } from '../../../src/utils/errors.js';
+import { getQuotesTool, getQuotes, handleGetQuotes } from '../../../src/tools/getQuotes.js';
 import type { SerperSearchResult } from '../../../src/types/quotes.js';
+import { ValidationError, NetworkError, AuthenticationError } from '../../../src/utils/errors.js';
 
 // Mock the SerperClient
 jest.mock('../../../src/services/serperClient.js');

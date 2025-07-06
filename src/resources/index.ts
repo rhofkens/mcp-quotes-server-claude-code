@@ -5,14 +5,15 @@
  * Resources provide access to quote collections and metadata.
  */
 
-import { Resource } from '@modelcontextprotocol/sdk/types.js';
+import type { Resource } from '@modelcontextprotocol/sdk/types.js';
+
 import { promptTemplateHandler, promptTemplateResources } from './promptTemplate.js';
 
 // Resource handler type
 export type ResourceHandler = (uri: string) => Promise<unknown>;
 
 // Resource registry interface
-export interface ResourceRegistry {
+export interface IResourceRegistry {
   [resourceUri: string]: {
     definition: Resource;
     handler: ResourceHandler;
@@ -22,8 +23,8 @@ export interface ResourceRegistry {
 /**
  * Build the resource registry dynamically
  */
-function buildResourceRegistry(): ResourceRegistry {
-  const registry: ResourceRegistry = {};
+function buildResourceRegistry(): IResourceRegistry {
+  const registry: IResourceRegistry = {};
   
   // Register all prompt template resources
   promptTemplateResources.forEach(resource => {
@@ -47,7 +48,7 @@ function buildResourceRegistry(): ResourceRegistry {
  * Registry of all available resources
  * Dynamically built to include all template variations
  */
-export const resourceRegistry: ResourceRegistry = buildResourceRegistry();
+export const resourceRegistry: IResourceRegistry = buildResourceRegistry();
 
 // Export resource definitions for registration
 export const resources = Object.values(resourceRegistry).map(r => r.definition);

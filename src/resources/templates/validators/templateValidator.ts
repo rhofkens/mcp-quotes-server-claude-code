@@ -4,12 +4,13 @@
  * Validates quote templates against schema and business rules
  */
 
-import {
+import type {
   QuoteTemplate,
   TemplateValidationResult,
   TemplateValidationError,
   TemplateValidationWarning,
-  TemplateVariable,
+  TemplateVariable} from '../../../types/templates.js';
+import {
   VariableType,
   OutputFormat
 } from '../../../types/templates.js';

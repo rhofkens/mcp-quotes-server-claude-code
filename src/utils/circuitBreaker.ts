@@ -5,8 +5,8 @@
  * cascading failures and allowing systems to recover
  */
 
-import { logger } from './logger.js';
 import { APIError, ErrorCode } from './errors.js';
+import { logger } from './logger.js';
 
 /**
  * Circuit breaker states
@@ -20,19 +20,19 @@ export enum CircuitState {
 /**
  * Circuit breaker configuration
  */
-export interface CircuitBreakerConfig {
+export interface ICircuitBreakerConfig {
   failureThreshold?: number;      // Number of failures before opening
   successThreshold?: number;      // Number of successes to close from half-open
   timeout?: number;              // Time before trying half-open (ms)
   monitoringPeriod?: number;     // Time window for failure counting (ms)
-  fallbackFunction?: () => any;  // Fallback when circuit is open
+  fallbackFunction?: () => unknown;  // Fallback when circuit is open
   healthCheckFunction?: () => Promise<boolean>; // Optional health check
 }
 
 /**
  * Circuit breaker statistics
  */
-export interface CircuitBreakerStats {
+export interface ICircuitBreakerStats {
   state: CircuitState;
   failures: number;
   successes: number;
@@ -46,21 +46,21 @@ export interface CircuitBreakerStats {
 /**
  * Circuit breaker implementation
  */
-export class CircuitBreaker<T = any> {
+export class CircuitBreaker<T = unknown> {
   private state: CircuitState = CircuitState.CLOSED;
   private failureCount = 0;
   private successCount = 0;
   private lastFailureTime: number | undefined;
   private lastSuccessTime: number | undefined;
   private nextAttempt: number | undefined;
-  private readonly config: Required<CircuitBreakerConfig>;
+  private readonly config: Required<ICircuitBreakerConfig>;
   private stats = {
     totalRequests: 0,
     rejectedRequests: 0,
     fallbacksExecuted: 0,
   };
   
-  constructor(config: CircuitBreakerConfig = {}) {
+  constructor(config: ICircuitBreakerConfig = {}) {
     this.config = {
       failureThreshold: config.failureThreshold || 5,
       successThreshold: config.successThreshold || 2,
@@ -73,14 +73,14 @@ export class CircuitBreaker<T = any> {
           'circuit-breaker'
         );
       }),
-      healthCheckFunction: config.healthCheckFunction || (async () => true),
+      healthCheckFunction: config.healthCheckFunction || (() => Promise.resolve(true)),
     };
   }
   
   /**
    * Execute a function with circuit breaker protection
    */
-  async execute<R = T>(fn: () => Promise<R>): Promise<R> {
+  execute<R = T>(fn: () => Promise<R>): Promise<R> {
     this.stats.totalRequests++;
     
     // Check if we should reset failure count based on monitoring period
@@ -237,7 +237,7 @@ export class CircuitBreaker<T = any> {
   /**
    * Get circuit breaker statistics
    */
-  getStats(): CircuitBreakerStats {
+  getStats(): ICircuitBreakerStats {
     return {
       state: this.state,
       failures: this.failureCount,
@@ -286,9 +286,9 @@ export class CircuitBreaker<T = any> {
 /**
  * Factory function to create configured circuit breakers
  */
-export function createCircuitBreaker<T = any>(
+export function createCircuitBreaker<T = unknown>(
   name: string,
-  config?: CircuitBreakerConfig
+  config?: ICircuitBreakerConfig
 ): CircuitBreaker<T> {
   logger.info('Creating circuit breaker', { name, config });
   return new CircuitBreaker<T>(config);

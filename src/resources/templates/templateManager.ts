@@ -4,20 +4,24 @@
  * Central manager for all quote templates
  */
 
-import {
+import type {
   QuoteTemplate,
-  TemplateCategory,
   TemplateSearchQuery,
   TemplateRenderContext,
   TemplateRenderResult,
   TemplateValidationResult
 } from '../../types/templates.js';
-import { templateRepository } from './templateRepository.js';
-import { TemplateValidator } from './validators/templateValidator.js';
-import { TemplateRenderer } from './generators/templateRenderer.js';
+import {
+  TemplateCategory
+} from '../../types/templates.js';
+import { logger } from '../../utils/logger.js';
+
 import { motivationalTemplates } from './categories/motivationalTemplates.js';
 import { philosophicalTemplates } from './categories/philosophicalTemplates.js';
-import { logger } from '../../utils/logger.js';
+import { TemplateRenderer } from './generators/templateRenderer.js';
+import { templateRepository } from './templateRepository.js';
+import { TemplateValidator } from './validators/templateValidator.js';
+
 
 /**
  * Template Manager class - singleton pattern

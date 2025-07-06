@@ -4,9 +4,10 @@
  * Provides configurable retry logic with circuit breaker integration
  */
 
-import { logger } from './logger.js';
+import type { CircuitBreaker} from './circuitBreaker.js';
+import { CircuitState } from './circuitBreaker.js';
 import { APIError, ErrorCode } from './errors.js';
-import { CircuitBreaker, CircuitState } from './circuitBreaker.js';
+import { logger } from './logger.js';
 
 /**
  * Retry configuration options

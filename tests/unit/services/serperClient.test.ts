@@ -6,9 +6,10 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import axios from 'axios';
+
 import { SerperClient } from '../../../src/services/serperClient.js';
-import { ValidationError, APIError } from '../../../src/utils/errors.js';
 import type { SerperApiResponse } from '../../../src/types/quotes.js';
+import { ValidationError, APIError } from '../../../src/utils/errors.js';
 
 // Mock axios
 jest.mock('axios');
@@ -45,7 +46,7 @@ describe('SerperClient', () => {
       expect(() => new SerperClient({ apiKey: '' })).toThrow(ValidationError);
       
       // Restore env var
-      if (originalApiKey) process.env['SERPER_API_KEY'] = originalApiKey;
+      if (originalApiKey) {process.env['SERPER_API_KEY'] = originalApiKey;}
     });
 
     it('should use default base URL', () => {
@@ -222,7 +223,7 @@ describe('SerperClient', () => {
       await client.searchQuotes({ query: '  Albert Einstein   quotes', num: 1 });
 
       const callArgs = mockedAxios.post.mock.calls[0];
-      if (!callArgs) throw new Error('No mock calls');
+      if (!callArgs) {throw new Error('No mock calls');}
       expect((callArgs[1] as any).q).toBe('  Albert Einstein   quotes');
     });
 
@@ -230,7 +231,7 @@ describe('SerperClient', () => {
       await client.searchQuotes({ query: 'Einstein   physics & relativity   quotes', num: 1 });
 
       const callArgs = mockedAxios.post.mock.calls[0];
-      if (!callArgs) throw new Error('No mock calls');
+      if (!callArgs) {throw new Error('No mock calls');}
       expect((callArgs[1] as any).q).toBe('Einstein   physics & relativity   quotes');
     });
   });

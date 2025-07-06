@@ -8,17 +8,17 @@ import type { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdi
 /**
  * Server configuration options
  */
-export interface ServerConfig {
+export interface IServerConfig {
   name: string;
   version: string;
   description?: string;
-  capabilities?: ServerCapabilities;
+  capabilities?: IServerCapabilities;
 }
 
 /**
  * Server capabilities configuration
  */
-export interface ServerCapabilities {
+export interface IServerCapabilities {
   tools?: boolean;
   resources?: boolean;
   prompts?: boolean;
@@ -40,7 +40,7 @@ export enum ServerState {
 /**
  * Server lifecycle events
  */
-export interface ServerLifecycle {
+export interface IServerLifecycle {
   onStart?: () => Promise<void>;
   onStop?: () => Promise<void>;
   onError?: (error: Error) => Promise<void>;

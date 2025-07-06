@@ -5,13 +5,17 @@
  * with a single POST endpoint for all MCP communication
  */
 
-import express, { Express, RequestHandler, Response as ExpressResponse } from 'express';
+
 import { randomUUID } from 'crypto';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
+
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import type { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
+import express from 'express';
+import type { Express, RequestHandler, Response as ExpressResponse } from 'express';
+
 import { logger } from '../utils/logger.js';
 
-interface HttpTransportOptions {
+interface IHttpTransportOptions {
   port: number;
   host: string;
   path: string;
@@ -23,7 +27,7 @@ interface HttpTransportOptions {
  */
 export class HttpServerTransport implements Transport {
   private app: Express;
-  private server: any;
+  private server: ReturnType<Express['listen']> | undefined;
   private sessions: Map<string, {
     pendingResponses: Map<string | number, (response: JSONRPCMessage) => void>;
   }> = new Map();
@@ -34,7 +38,7 @@ export class HttpServerTransport implements Transport {
   onerror?: (error: Error) => void;
   onmessage?: (message: JSONRPCMessage) => void;
   
-  constructor(private options: HttpTransportOptions) {
+  constructor(private options: IHttpTransportOptions) {
     this.app = express();
     this.setupMiddleware();
     this.setupRoutes();
@@ -67,20 +71,20 @@ export class HttpServerTransport implements Transport {
   
   private setupRoutes(): void {
     // Main MCP endpoint - handles all protocol messages
-    const mcpHandler: RequestHandler = async (req, res): Promise<void> => {
+    const mcpHandler: RequestHandler = (req, res): void => {
       try {
         const sessionId = req.headers['mcp-session-id'] as string;
         const message = req.body as JSONRPCMessage;
         
         logger.debug('HTTP transport received message', { 
           sessionId, 
-          method: (message as any).method,
-          id: (message as any).id,
+          method: 'method' in message ? (message as {method: string}).method : undefined,
+          id: 'id' in message ? (message as {id: string | number}).id : undefined,
           headers: req.headers
         });
         
         // Handle initialization specially
-        if ((message as any).method === 'initialize') {
+        if ('method' in message && (message as {method: string}).method === 'initialize') {
           const newSessionId = randomUUID();
           
           // Create session
@@ -92,14 +96,14 @@ export class HttpServerTransport implements Transport {
           if (this.onmessage) {
             // For initialization, we'll handle the response directly
             this.currentResponse = res;
-            const messageId = (message as any).id;
+            const messageId = 'id' in message ? (message as {id: string | number}).id : undefined;
             
             // Store response handler for this specific request
             const session = this.sessions.get(newSessionId)!;
             session.pendingResponses.set(messageId, (response: JSONRPCMessage) => {
               logger.debug('Sending initialize response', { 
                 sessionId: newSessionId,
-                responseId: (response as any).id 
+                responseId: 'id' in response ? (response as {id: string | number}).id : undefined 
               });
               res.setHeader('Mcp-Session-Id', newSessionId);
               res.json(response);
@@ -112,7 +116,7 @@ export class HttpServerTransport implements Transport {
           } else {
             res.status(500).json({
               jsonrpc: '2.0',
-              id: (message as any).id,
+              id: 'id' in message ? (message as {id: string | number}).id : undefined,
               error: {
                 code: -32603,
                 message: 'Server not initialized'
@@ -125,7 +129,7 @@ export class HttpServerTransport implements Transport {
           if (!sessionId || !this.sessions.has(sessionId)) {
             res.status(400).json({
               jsonrpc: '2.0',
-              id: (message as any).id || null,
+              id: 'id' in message ? (message as {id: string | number}).id : null,
               error: {
                 code: -32603,
                 message: 'Missing or invalid Mcp-Session-Id header'
@@ -146,8 +150,8 @@ export class HttpServerTransport implements Transport {
               session.pendingResponses.set(messageId, (response: JSONRPCMessage) => {
                 logger.debug('Sending response', { 
                   sessionId,
-                  method: (message as any).method,
-                  responseId: (response as any).id 
+                  method: 'method' in message ? (message as {method: string}).method : undefined,
+                  responseId: 'id' in response ? (response as {id: string | number}).id : undefined 
                 });
                 res.json(response);
                 session.pendingResponses.delete(messageId);
@@ -168,7 +172,7 @@ export class HttpServerTransport implements Transport {
           } else {
             res.status(500).json({
               jsonrpc: '2.0',
-              id: (message as any).id || null,
+              id: 'id' in message ? (message as {id: string | number}).id : null,
               error: {
                 code: -32603,
                 message: 'Server not initialized'
@@ -181,7 +185,7 @@ export class HttpServerTransport implements Transport {
         logger.error('HTTP transport error', error);
         res.status(500).json({
           jsonrpc: '2.0',
-          id: (req.body as any)?.id || null,
+          id: (req.body && typeof req.body === 'object' && 'id' in req.body) ? (req.body as {id: string | number}).id : null,
           error: {
             code: -32603,
             message: `Internal error: ${error instanceof Error ? error.message : String(error)}`
@@ -203,7 +207,7 @@ export class HttpServerTransport implements Transport {
     });
   }
   
-  async start(): Promise<void> {
+  start(): Promise<void> {
     if (this.isStarted) {
       logger.warn('HTTP transport already started');
       return;
@@ -228,7 +232,7 @@ export class HttpServerTransport implements Transport {
             path: this.options.path,
             url
           });
-          console.log(`MCP HTTP Server listening at ${url}`);
+          logger.info(`MCP HTTP Server listening at ${url}`);
           resolve();
         });
         
@@ -243,7 +247,7 @@ export class HttpServerTransport implements Transport {
     });
   }
   
-  async close(): Promise<void> {
+  close(): Promise<void> {
     return new Promise((resolve) => {
       if (this.server) {
         this.server.close(() => {
@@ -259,11 +263,11 @@ export class HttpServerTransport implements Transport {
     });
   }
   
-  async send(message: JSONRPCMessage): Promise<void> {
+  send(message: JSONRPCMessage): void {
     // This is called by the MCP server to send messages to clients
     logger.debug('HTTP transport send called', { 
-      method: (message as any).method,
-      id: (message as any).id 
+      method: 'method' in message ? (message as {method: string}).method : undefined,
+      id: 'id' in message ? (message as {id: string | number}).id : undefined
     });
     
     // For responses (they have an id but no method)

@@ -4,7 +4,8 @@
  * Pre-defined templates for philosophical quote requests
  */
 
-import { QuoteTemplate, TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js';
+import type { QuoteTemplate} from '../../../types/templates.js';
+import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js';
 
 /**
  * Ancient wisdom template

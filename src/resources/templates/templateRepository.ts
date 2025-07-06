@@ -4,16 +4,19 @@
  * In-memory repository for managing quote templates
  */
 
-import {
+import type {
   QuoteTemplate,
-  TemplateCategory,
-  VariableType,
-  OutputFormat,
   TemplateRepository,
   TemplateSearchQuery,
   TemplateVersion
 } from '../../types/templates.js';
+import {
+  TemplateCategory,
+  VariableType,
+  OutputFormat
+} from '../../types/templates.js';
 import { logger } from '../../utils/logger.js';
+
 import { TemplateValidator } from './validators/templateValidator.js';
 
 /**

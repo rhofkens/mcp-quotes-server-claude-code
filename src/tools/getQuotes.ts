@@ -4,10 +4,10 @@
  * MCP tool for retrieving quotes from a specific person
  */
 
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+
 import { serperClient } from '../services/serperClient.js';
-import { Quote, GetQuotesParams } from '../types/quotes.js';
-import { QuoteSchemas, validate } from '../utils/validation.js';
+import type { IQuote, IGetQuotesParams } from '../types/quotes.js';
 import { 
   APIError, 
   ValidationError, 
@@ -20,6 +20,7 @@ import {
   withTimeout
 } from '../utils/errorHandling.js';
 import { logger } from '../utils/logger.js';
+import { QuoteSchemas, validate } from '../utils/validation.js';
 
 /**
  * Input schema for the getQuotes tool
@@ -29,7 +30,7 @@ const getQuotesSchema = QuoteSchemas.getQuotesParams;
 /**
  * Handler function for the getQuotes tool with enhanced error handling
  */
-async function getQuotesHandler(params: unknown): Promise<{ quotes: Quote[] }> {
+async function getQuotesHandler(params: unknown): Promise<{ quotes: IQuote[] }> {
   const requestId = generateRequestId();
   const errorAggregator = new ErrorAggregator();
   
@@ -75,7 +76,7 @@ async function getQuotesHandler(params: unknown): Promise<{ quotes: Quote[] }> {
     );
     
     // Process search results into quotes
-    const quotes: Quote[] = [];
+    const quotes: IQuote[] = [];
     const seenQuotes = new Set<string>(); // To avoid duplicates
     
     for (const result of searchResults) {
@@ -90,7 +91,7 @@ async function getQuotesHandler(params: unknown): Promise<{ quotes: Quote[] }> {
         if (quoteText && !seenQuotes.has(quoteText)) {
           seenQuotes.add(quoteText);
           
-          const quote: Quote = {
+          const quote: IQuote = {
             text: quoteText,
             author: person,
           };
@@ -144,7 +145,7 @@ async function getQuotesHandler(params: unknown): Promise<{ quotes: Quote[] }> {
             if (quoteText && !seenQuotes.has(quoteText)) {
               seenQuotes.add(quoteText);
               
-              const quote: Quote = {
+              const quote: IQuote = {
                 text: quoteText,
                 author: person,
               };
@@ -281,7 +282,7 @@ export const getQuotesTool: Tool = {
 /**
  * Alternative handler that can be used directly (not through MCP)
  */
-export async function getQuotes(params: GetQuotesParams): Promise<Quote[]> {
+export async function getQuotes(params: IGetQuotesParams): Promise<IQuote[]> {
   const result = await getQuotesHandler(params);
   return result.quotes;
 }

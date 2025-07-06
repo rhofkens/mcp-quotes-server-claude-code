@@ -3,6 +3,9 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
+import { z } from 'zod';
+
+import { ValidationError } from '../../../src/utils/errors.js';
 import {
   CommonSchemas,
   MCPSchemas,
@@ -22,8 +25,6 @@ import {
   sanitizeString,
   validateSearchQuery
 } from '../../../src/utils/validation.js';
-import { ValidationError } from '../../../src/utils/errors.js';
-import { z } from 'zod';
 
 describe('Validation Utilities', () => {
   describe('CommonSchemas', () => {

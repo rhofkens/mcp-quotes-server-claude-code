@@ -4,13 +4,13 @@
  * Advanced error handling with retry logic, structured responses, and debugging capabilities
  */
 
-import { logger } from './logger.js';
 import { BaseError, ErrorCode, APIError } from './errors.js';
+import { logger } from './logger.js';
 
 /**
  * Configuration for retry logic
  */
-export interface RetryConfig {
+export interface IRetryConfig {
   maxRetries: number;
   initialDelay: number;
   maxDelay: number;
@@ -22,7 +22,7 @@ export interface RetryConfig {
 /**
  * Default retry configuration
  */
-export const DEFAULT_RETRY_CONFIG: RetryConfig = {
+export const DEFAULT_RETRY_CONFIG: IRetryConfig = {
   maxRetries: 3,
   initialDelay: 1000, // 1 second
   maxDelay: 30000,    // 30 seconds
@@ -37,7 +37,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 /**
  * Structured error response format
  */
-export interface StructuredErrorResponse {
+export interface IStructuredErrorResponse {
   error: {
     code: string;
     message: string;
@@ -45,15 +45,15 @@ export interface StructuredErrorResponse {
     timestamp: string;
     requestId?: string;
     details?: Record<string, unknown>;
-    context?: ErrorContext;
-    recovery?: ErrorRecovery;
+    context?: IErrorContext;
+    recovery?: IErrorRecovery;
   };
 }
 
 /**
  * Error context information for debugging
  */
-export interface ErrorContext {
+export interface IErrorContext {
   operation: string;
   input?: Record<string, unknown>;
   environment?: {
@@ -72,7 +72,7 @@ export interface ErrorContext {
 /**
  * Error recovery suggestions
  */
-export interface ErrorRecovery {
+export interface IErrorRecovery {
   suggestions: string[];
   retryable: boolean;
   retryAfter?: number;
@@ -84,7 +84,7 @@ export interface ErrorRecovery {
  * Error context builder
  */
 export class ErrorContextBuilder {
-  private context: Partial<ErrorContext> = {};
+  private context: Partial<IErrorContext> = {};
   
   setOperation(operation: string): this {
     this.context.operation = operation;
@@ -127,7 +127,7 @@ export class ErrorContextBuilder {
     return this;
   }
   
-  build(): ErrorContext {
+  build(): IErrorContext {
     return {
       operation: this.context.operation || 'unknown',
       ...this.context,
@@ -211,9 +211,9 @@ export function generateRecoverySuggestions(error: BaseError): ErrorRecovery {
  */
 export function createStructuredError(
   error: unknown,
-  context?: ErrorContext,
+  context?: IErrorContext,
   requestId?: string
-): StructuredErrorResponse {
+): IStructuredErrorResponse {
   const baseError = error instanceof BaseError 
     ? error 
     : new BaseError(
@@ -242,7 +242,7 @@ export function createStructuredError(
  */
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  config: Partial<RetryConfig> = {}
+  config: Partial<IRetryConfig> = {}
 ): Promise<T> {
   const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
   let lastError: Error | undefined;
@@ -437,9 +437,9 @@ export class CircuitBreaker {
  * Error aggregator for batch operations
  */
 export class ErrorAggregator {
-  private errors: Array<{ error: Error; context?: any }> = [];
+  private errors: Array<{ error: Error; context?: unknown }> = [];
   
-  add(error: Error, context?: any): void {
+  add(error: Error, context?: unknown): void {
     this.errors.push({ error, context });
   }
   
@@ -447,7 +447,7 @@ export class ErrorAggregator {
     return this.errors.length > 0;
   }
   
-  getErrors(): Array<{ error: Error; context?: any }> {
+  getErrors(): Array<{ error: Error; context?: unknown }> {
     return [...this.errors];
   }
   
@@ -480,7 +480,7 @@ export class ErrorAggregator {
 /**
  * Timeout wrapper for async operations
  */
-export async function withTimeout<T>(
+export function withTimeout<T>(
   operation: Promise<T>,
   timeoutMs: number,
   errorMessage = 'Operation timed out'

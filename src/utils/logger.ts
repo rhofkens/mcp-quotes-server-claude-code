@@ -4,8 +4,10 @@
  * Logs to files only - console output would interfere with MCP STDIO protocol
  */
 
-import winston from 'winston';
 import path from 'path';
+
+import winston from 'winston';
+
 import { config } from './config.js';
 
 // Ensure logs directory exists
@@ -120,13 +122,13 @@ export class RequestLogger {
   }
 
   private sanitizeParams(params: any): any {
-    if (!params) return params;
+    if (!params) {return params;}
     
     // Remove sensitive data like API keys
     const sanitized = { ...params };
-    if (sanitized.apiKey) sanitized.apiKey = '***';
-    if (sanitized.token) sanitized.token = '***';
-    if (sanitized.serperApiKey) sanitized.serperApiKey = '***';
+    if (sanitized.apiKey) {sanitized.apiKey = '***';}
+    if (sanitized.token) {sanitized.token = '***';}
+    if (sanitized.serperApiKey) {sanitized.serperApiKey = '***';}
     
     return sanitized;
   }

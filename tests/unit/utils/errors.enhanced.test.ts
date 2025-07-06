@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, afterEach } from '@jest/globals';
+
 import {
   BaseError,
   MCPError,

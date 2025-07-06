@@ -5,13 +5,14 @@
  * to enable fallback mechanisms and reduce API calls
  */
 
-import { Quote } from '../types/quotes.js';
+import type { IQuote } from '../types/quotes.js';
+
 import { logger } from './logger.js';
 
 /**
  * Cache entry with metadata
  */
-interface CacheEntry<T> {
+interface ICacheEntry<T> {
   data: T;
   timestamp: number;
   hits: number;
@@ -21,7 +22,7 @@ interface CacheEntry<T> {
 /**
  * Cache statistics for monitoring
  */
-export interface CacheStats {
+export interface ICacheStats {
   hits: number;
   misses: number;
   evictions: number;
@@ -40,11 +41,11 @@ export interface CacheConfig {
 /**
  * Generic in-memory cache with TTL and LRU eviction
  */
-export class Cache<T = any> {
-  private cache: Map<string, CacheEntry<T>>;
+export class Cache<T = unknown> {
+  private cache: Map<string, ICacheEntry<T>>;
   private readonly maxSize: number;
   private readonly defaultTTL: number;
-  private stats: CacheStats;
+  private stats: ICacheStats;
   private readonly enableStats: boolean;
   
   constructor(config: CacheConfig = {}) {
@@ -67,7 +68,7 @@ export class Cache<T = any> {
     const entry = this.cache.get(key);
     
     if (!entry) {
-      if (this.enableStats) this.stats.misses++;
+      if (this.enableStats) {this.stats.misses++;}
       return null;
     }
     
@@ -83,7 +84,7 @@ export class Cache<T = any> {
     
     // Update hit count and stats
     entry.hits++;
-    if (this.enableStats) this.stats.hits++;
+    if (this.enableStats) {this.stats.hits++;}
     
     return entry.data;
   }
@@ -116,11 +117,11 @@ export class Cache<T = any> {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key);
-    if (!entry) return false;
+    if (!entry) {return false;}
     
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
-      if (this.enableStats) this.stats.size--;
+      if (this.enableStats) {this.stats.size--;}
       return false;
     }
     
@@ -151,7 +152,7 @@ export class Cache<T = any> {
   /**
    * Get cache statistics
    */
-  getStats(): Readonly<CacheStats> {
+  getStats(): Readonly<ICacheStats> {
     return { ...this.stats };
   }
   
@@ -227,7 +228,7 @@ export class Cache<T = any> {
 /**
  * Specialized cache for quote responses
  */
-export class QuoteCache extends Cache<Quote[]> {
+export class QuoteCache extends Cache<IQuote[]> {
   constructor() {
     super({
       maxSize: 500,
@@ -244,15 +245,15 @@ export class QuoteCache extends Cache<Quote[]> {
    */
   static generateKey(person: string, topic?: string, numberOfQuotes?: number): string {
     const parts = ['quotes', person.toLowerCase()];
-    if (topic) parts.push(topic.toLowerCase());
-    if (numberOfQuotes) parts.push(`n${numberOfQuotes}`);
+    if (topic) {parts.push(topic.toLowerCase());}
+    if (numberOfQuotes) {parts.push(`n${numberOfQuotes}`);}
     return parts.join(':');
   }
   
   /**
    * Get quotes from cache with fallback to stale data
    */
-  getWithFallback(key: string): { data: Quote[] | null; stale: boolean } {
+  getWithFallback(key: string): { data: IQuote[] | null; stale: boolean } {
     const fresh = this.get(key);
     if (fresh) {
       return { data: fresh, stale: false };

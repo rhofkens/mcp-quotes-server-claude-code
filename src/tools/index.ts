@@ -5,7 +5,8 @@
  * Tools provide the main functionality for interacting with quotes.
  */
 
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+
 import { getQuotesTool, handleGetQuotes } from './getQuotes.js';
 import { getResilientQuotesTool, handleGetResilientQuotes } from './getResilientQuotes.js';
 
@@ -13,7 +14,7 @@ import { getResilientQuotesTool, handleGetResilientQuotes } from './getResilient
 export type ToolHandler = (args: unknown) => Promise<unknown>;
 
 // Tool registry interface
-export interface ToolRegistry {
+export interface IToolRegistry {
   [toolName: string]: {
     definition: Tool;
     handler: ToolHandler;
@@ -24,7 +25,7 @@ export interface ToolRegistry {
  * Registry of all available tools
  * Easy to extend with new tools
  */
-export const toolRegistry: ToolRegistry = {
+export const toolRegistry: IToolRegistry = {
   getQuotes: {
     definition: getQuotesTool,
     handler: handleGetQuotes

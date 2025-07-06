@@ -4,7 +4,9 @@
  * Input validation helpers and type guards for MCP requests
  */
 
-import { z, ZodError, ZodSchema } from 'zod';
+import type { ZodSchema } from 'zod';
+import { z, ZodError } from 'zod';
+
 import { ValidationError, ErrorCode } from './errors.js';
 
 /**

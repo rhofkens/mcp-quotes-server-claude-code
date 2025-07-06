@@ -54,7 +54,7 @@ export enum OutputFormat {
 /**
  * Variable definition with enhanced metadata
  */
-export interface TemplateVariable {
+export interface ITemplateVariable {
   /** Variable name used in template */
   name: string;
   /** Human-readable display name */
@@ -80,7 +80,7 @@ export interface TemplateVariable {
 /**
  * Variable validation rules
  */
-export interface VariableValidation {
+export interface IVariableValidation {
   /** Minimum value/length */
   min?: number;
   /** Maximum value/length */
@@ -96,7 +96,7 @@ export interface VariableValidation {
 /**
  * UI hints for variable rendering
  */
-export interface VariableUIHints {
+export interface IVariableUIHints {
   /** Input type hint */
   inputType?: 'text' | 'textarea' | 'select' | 'multiselect' | 'date' | 'number' | 'checkbox';
   /** Placeholder text */
@@ -112,7 +112,7 @@ export interface VariableUIHints {
 /**
  * Template metadata
  */
-export interface TemplateMetadata {
+export interface ITemplateMetadata {
   /** Template unique identifier */
   id: string;
   /** Template name */
@@ -142,7 +142,7 @@ export interface TemplateMetadata {
 /**
  * Template usage statistics
  */
-export interface TemplateUsageStats {
+export interface ITemplateUsageStats {
   /** Total number of uses */
   totalUses: number;
   /** Last used date */
@@ -156,13 +156,13 @@ export interface TemplateUsageStats {
 /**
  * Complete template definition
  */
-export interface QuoteTemplate {
+export interface IQuoteTemplate {
   /** Template metadata */
   metadata: TemplateMetadata;
   /** Template content with variable placeholders */
   content: string;
   /** Variable definitions */
-  variables: TemplateVariable[];
+  variables: ITemplateVariable[];
   /** Output format configuration */
   outputFormat: OutputFormatConfig;
   /** Parent template ID for inheritance */
@@ -178,11 +178,11 @@ export interface QuoteTemplate {
 /**
  * Output format configuration
  */
-export interface OutputFormatConfig {
+export interface IOutputFormatConfig {
   /** Primary output format */
   format: OutputFormat;
   /** Format-specific options */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
   /** Alternative formats supported */
   alternativeFormats?: OutputFormat[];
 }
@@ -190,7 +190,7 @@ export interface OutputFormatConfig {
 /**
  * Template component for composition
  */
-export interface TemplateComponent {
+export interface ITemplateComponent {
   /** Component ID */
   id: string;
   /** Component type */
@@ -206,13 +206,13 @@ export interface TemplateComponent {
 /**
  * Post-processor definition
  */
-export interface PostProcessor {
+export interface IPostProcessor {
   /** Processor name */
   name: string;
   /** Processor type */
   type: 'formatter' | 'validator' | 'transformer' | 'enricher';
   /** Processor options */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
   /** Order of execution */
   order?: number;
 }
@@ -220,7 +220,7 @@ export interface PostProcessor {
 /**
  * Template example
  */
-export interface TemplateExample {
+export interface ITemplateExample {
   /** Example name */
   name: string;
   /** Example description */
@@ -234,7 +234,7 @@ export interface TemplateExample {
 /**
  * Template version information
  */
-export interface TemplateVersion {
+export interface ITemplateVersion {
   /** Version number */
   version: string;
   /** Template content at this version */
@@ -252,7 +252,7 @@ export interface TemplateVersion {
 /**
  * Template repository interface
  */
-export interface TemplateRepository {
+export interface ITemplateRepository {
   /** Get template by ID */
   getTemplate(id: string, version?: string): Promise<QuoteTemplate | null>;
   /** List templates by category */
@@ -268,7 +268,7 @@ export interface TemplateRepository {
 /**
  * Template search query
  */
-export interface TemplateSearchQuery {
+export interface ITemplateSearchQuery {
   /** Search text */
   text?: string;
   /** Filter by categories */
@@ -291,19 +291,19 @@ export interface TemplateSearchQuery {
 /**
  * Template validation result
  */
-export interface TemplateValidationResult {
+export interface ITemplateValidationResult {
   /** Whether template is valid */
   isValid: boolean;
   /** Validation errors */
-  errors: TemplateValidationError[];
+  errors: ITemplateValidationError[];
   /** Validation warnings */
-  warnings: TemplateValidationWarning[];
+  warnings: ITemplateValidationWarning[];
 }
 
 /**
  * Template validation error
  */
-export interface TemplateValidationError {
+export interface ITemplateValidationError {
   /** Error code */
   code: string;
   /** Error message */
@@ -315,7 +315,7 @@ export interface TemplateValidationError {
 /**
  * Template validation warning
  */
-export interface TemplateValidationWarning {
+export interface ITemplateValidationWarning {
   /** Warning code */
   code: string;
   /** Warning message */
@@ -333,11 +333,11 @@ export interface TemplateGeneratorConfig {
   /** Category for generated template */
   category: TemplateCategory;
   /** Variables to include */
-  variables: TemplateVariable[];
+  variables: ITemplateVariable[];
   /** Output format */
   outputFormat: OutputFormat;
   /** Additional options */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 }
 
 /**

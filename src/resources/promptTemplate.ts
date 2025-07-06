@@ -8,6 +8,7 @@
  */
 
 import type { Resource } from '@modelcontextprotocol/sdk/types.js';
+
 import { logger } from '../utils/logger.js';
 
 /**

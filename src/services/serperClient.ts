@@ -5,6 +5,8 @@
  */
 
 import axios, { AxiosError } from 'axios';
+
+import type { ISerperApiResponse, ISerperSearchResult } from '../types/quotes.js';
 import { 
   APIError, 
   ErrorCode,
@@ -15,14 +17,13 @@ import {
   ErrorContextBuilder,
   generateRequestId
 } from '../utils/errorHandling.js';
-import { SerperApiResponse, SerperSearchResult } from '../types/quotes.js';
-import { validateEnvVar } from '../utils/validation.js';
 import { logger } from '../utils/logger.js';
+import { validateEnvVar } from '../utils/validation.js';
 
 /**
  * Serper API configuration
  */
-export interface SerperConfig {
+export interface ISerperConfig {
   apiKey: string;
   baseUrl?: string;
   timeout?: number;
@@ -31,7 +32,7 @@ export interface SerperConfig {
 /**
  * Serper search parameters
  */
-export interface SerperSearchParams {
+export interface ISerperSearchParams {
   query: string;
   num?: number;
 }
@@ -45,7 +46,7 @@ export class SerperClient {
   private readonly timeout: number;
   private readonly circuitBreaker: CircuitBreaker;
   
-  constructor(config?: Partial<SerperConfig>) {
+  constructor(config?: Partial<ISerperConfig>) {
     // Get API key from environment or config
     this.apiKey = config?.apiKey || validateEnvVar('SERPER_API_KEY', process.env['SERPER_API_KEY']);
     this.baseUrl = config?.baseUrl || 'https://google.serper.dev';
@@ -62,7 +63,7 @@ export class SerperClient {
   /**
    * Search for quotes using Serper API with enhanced error handling
    */
-  async searchQuotes(params: SerperSearchParams): Promise<SerperSearchResult[]> {
+  async searchQuotes(params: ISerperSearchParams): Promise<ISerperSearchResult[]> {
     const requestId = generateRequestId();
     const context = new ErrorContextBuilder()
       .setOperation('searchQuotes')
@@ -80,7 +81,7 @@ export class SerperClient {
           async () => {
             // Add timeout protection
             const response = await withTimeout(
-              axios.post<SerperApiResponse>(
+              axios.post<ISerperApiResponse>(
                 `${this.baseUrl}/search`,
                 {
                   q: params.query,

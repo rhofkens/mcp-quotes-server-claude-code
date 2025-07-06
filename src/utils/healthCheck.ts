@@ -6,9 +6,11 @@
  */
 
 import axios from 'axios';
+
+import type { ICacheStats } from './cache.js';
+import { CircuitState } from './circuitBreaker.js';
+import type { ICircuitBreakerStats } from './circuitBreaker.js';
 import { logger } from './logger.js';
-import { CircuitBreakerStats } from './circuitBreaker.js';
-import { CacheStats } from './cache.js';
 
 /**
  * Health status levels
@@ -22,11 +24,11 @@ export enum HealthStatus {
 /**
  * Individual component health check result
  */
-export interface ComponentHealth {
+export interface IComponentHealth {
   name: string;
   status: HealthStatus;
   message?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   lastChecked: Date;
   responseTime?: number;
 }
@@ -34,10 +36,10 @@ export interface ComponentHealth {
 /**
  * Overall system health
  */
-export interface SystemHealth {
+export interface ISystemHealth {
   status: HealthStatus;
   timestamp: Date;
-  components: ComponentHealth[];
+  components: IComponentHealth[];
   version?: string;
   uptime?: number;
 }
@@ -45,7 +47,7 @@ export interface SystemHealth {
 /**
  * Health check configuration
  */
-export interface HealthCheckConfig {
+export interface IHealthCheckConfig {
   interval?: number;          // Check interval in ms
   timeout?: number;           // Health check timeout in ms
   includeDetails?: boolean;   // Include detailed stats
@@ -55,13 +57,13 @@ export interface HealthCheckConfig {
  * Health check manager
  */
 export class HealthCheckManager {
-  private checks: Map<string, () => Promise<ComponentHealth>>;
-  private lastResults: Map<string, ComponentHealth>;
+  private checks: Map<string, () => Promise<IComponentHealth>>;
+  private lastResults: Map<string, IComponentHealth>;
   private checkInterval?: NodeJS.Timeout;
   private startTime: number;
-  private config: Required<HealthCheckConfig>;
+  private config: Required<IHealthCheckConfig>;
   
-  constructor(config: HealthCheckConfig = {}) {
+  constructor(config: IHealthCheckConfig = {}) {
     this.checks = new Map();
     this.lastResults = new Map();
     this.startTime = Date.now();
@@ -75,7 +77,7 @@ export class HealthCheckManager {
   /**
    * Register a health check
    */
-  register(name: string, check: () => Promise<ComponentHealth>): void {
+  register(name: string, check: () => Promise<IComponentHealth>): void {
     this.checks.set(name, check);
     logger.info('Health check registered', { name });
   }
@@ -92,8 +94,8 @@ export class HealthCheckManager {
   /**
    * Run all health checks
    */
-  async runChecks(): Promise<SystemHealth> {
-    const results: ComponentHealth[] = [];
+  async runChecks(): Promise<ISystemHealth> {
+    const results: IComponentHealth[] = [];
     
     // Run all checks in parallel with timeout
     const checkPromises = Array.from(this.checks.entries()).map(
@@ -110,7 +112,7 @@ export class HealthCheckManager {
           this.lastResults.set(name, result);
           return result;
         } catch (error) {
-          const errorResult: ComponentHealth = {
+          const errorResult: IComponentHealth = {
             name,
             status: HealthStatus.UNHEALTHY,
             message: error instanceof Error ? error.message : 'Health check failed',
@@ -151,7 +153,7 @@ export class HealthCheckManager {
   /**
    * Get last health check results
    */
-  getLastResults(): SystemHealth {
+  getLastResults(): ISystemHealth {
     const components = Array.from(this.lastResults.values());
     
     const hasUnhealthy = components.some(c => c.status === HealthStatus.UNHEALTHY);
@@ -199,7 +201,7 @@ export class HealthCheckManager {
   stopPeriodicChecks(): void {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
-      (this.checkInterval as any) = undefined;
+      this.checkInterval = undefined;
       logger.info('Periodic health checks stopped');
     }
   }
@@ -226,7 +228,7 @@ export class HealthCheckManager {
 export function createSerperHealthCheck(
   apiKey: string,
   baseUrl = 'https://google.serper.dev'
-): () => Promise<ComponentHealth> {
+): () => Promise<IComponentHealth> {
   return async () => {
     const startTime = Date.now();
     
@@ -243,7 +245,7 @@ export function createSerperHealthCheck(
       
       const responseTime = Date.now() - startTime;
       
-      if (response.status === 200 && !response.data.error) {
+      if (response.status === 200 && !('error' in response.data)) {
         return {
           name: 'serper-api',
           status: HealthStatus.HEALTHY,
@@ -259,7 +261,7 @@ export function createSerperHealthCheck(
           message: 'Serper API returned unexpected response',
           details: { 
             status: response.status,
-            error: response.data.error,
+            error: ('error' in response.data) ? response.data.error as unknown : undefined,
           },
           lastChecked: new Date(),
           responseTime,
@@ -281,9 +283,9 @@ export function createSerperHealthCheck(
  * Create cache health check
  */
 export function createCacheHealthCheck(
-  getStats: () => CacheStats
-): () => Promise<ComponentHealth> {
-  return async () => {
+  getStats: () => ICacheStats
+): () => Promise<IComponentHealth> {
+  return () => {
     const stats = getStats();
     const hitRate = stats.hits + stats.misses > 0
       ? stats.hits / (stats.hits + stats.misses)
@@ -303,7 +305,7 @@ export function createCacheHealthCheck(
       message = 'Cache is operating normally';
     }
     
-    return {
+    return Promise.resolve({
       name: 'cache',
       status,
       message,
@@ -312,7 +314,7 @@ export function createCacheHealthCheck(
         hitRate: Math.round(hitRate * 100) / 100,
       },
       lastChecked: new Date(),
-    };
+    });
   };
 }
 
@@ -322,24 +324,24 @@ export function createCacheHealthCheck(
 export function createCircuitBreakerHealthCheck(
   name: string,
   getStats: () => CircuitBreakerStats
-): () => Promise<ComponentHealth> {
-  return async () => {
+): () => Promise<IComponentHealth> {
+  return () => {
     const stats = getStats();
     let status: HealthStatus;
     let message: string;
     
     switch (stats.state) {
-      case 'OPEN':
+      case CircuitState.OPEN:
         status = HealthStatus.UNHEALTHY;
         message = 'Circuit breaker is open';
         break;
         
-      case 'HALF_OPEN':
+      case CircuitState.HALF_OPEN:
         status = HealthStatus.DEGRADED;
         message = 'Circuit breaker is half-open (testing recovery)';
         break;
         
-      case 'CLOSED':
+      case CircuitState.CLOSED:
         if (stats.failures > 0) {
           status = HealthStatus.DEGRADED;
           message = `Circuit breaker has ${stats.failures} recent failures`;
@@ -354,13 +356,13 @@ export function createCircuitBreakerHealthCheck(
         message = 'Circuit breaker is functioning normally';
     }
     
-    return {
+    return Promise.resolve({
       name: `circuit-breaker-${name}`,
       status,
       message,
       details: stats,
       lastChecked: new Date(),
-    };
+    });
   };
 }
 

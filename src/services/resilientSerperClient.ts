@@ -8,11 +8,13 @@
  * - Health monitoring
  */
 
-import { SerperClient, SerperConfig, SerperSearchParams } from './serperClient.js';
-import { SerperSearchResult } from '../types/quotes.js';
-import { CircuitBreaker, createCircuitBreaker } from '../utils/circuitBreaker.js';
-import { createRetryWrapper } from '../utils/retry.js';
-import { QuoteCache, quoteCache } from '../utils/cache.js';
+
+import type { SerperSearchResult } from '../types/quotes.js';
+import type { QuoteCache} from '../utils/cache.js';
+import { quoteCache } from '../utils/cache.js';
+import type { CircuitBreaker} from '../utils/circuitBreaker.js';
+import { createCircuitBreaker } from '../utils/circuitBreaker.js';
+import { APIError, ErrorCode } from '../utils/errors.js';
 import { 
   healthCheckManager, 
   createSerperHealthCheck,
@@ -20,7 +22,10 @@ import {
   createCacheHealthCheck,
 } from '../utils/healthCheck.js';
 import { logger } from '../utils/logger.js';
-import { APIError, ErrorCode } from '../utils/errors.js';
+import { createRetryWrapper } from '../utils/retry.js';
+
+import { SerperClient } from './serperClient.js';
+import type { SerperConfig, SerperSearchParams } from './serperClient.js';
 
 /**
  * Resilient client configuration

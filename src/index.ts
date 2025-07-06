@@ -7,10 +7,11 @@
  * It initializes and starts the server to provide quote management functionality.
  */
 
-import { QuotesServer } from './server.js';
-import { logger } from './utils/logger.js';
-import { getConfig } from './utils/config.js';
 import { config as dotenvConfig } from 'dotenv';
+
+import { QuotesServer } from './server.js';
+import { getConfig } from './utils/config.js';
+import { logger } from './utils/logger.js';
 
 // Load environment variables
 dotenvConfig();
@@ -21,7 +22,7 @@ let server: QuotesServer | null = null;
 /**
  * Graceful shutdown handler
  */
-async function shutdown(signal: string) {
+async function shutdown(signal: string): Promise<void> {
   logger.info(`Received ${signal}, shutting down gracefully...`);
   
   if (server) {
@@ -38,7 +39,7 @@ async function shutdown(signal: string) {
 /**
  * Main function to start the server
  */
-async function main() {
+async function main(): Promise<void> {
   try {
     // Check for required configuration
     try {
@@ -56,19 +57,19 @@ async function main() {
     server = new QuotesServer();
     
     // Register shutdown handlers
-    process.on('SIGINT', () => shutdown('SIGINT'));
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGHUP', () => shutdown('SIGHUP'));
+    process.on('SIGINT', () => void shutdown('SIGINT'));
+    process.on('SIGTERM', () => void shutdown('SIGTERM'));
+    process.on('SIGHUP', () => void shutdown('SIGHUP'));
     
     // Handle uncaught errors
     process.on('uncaughtException', (error) => {
       logger.error('Uncaught exception:', error);
-      shutdown('uncaughtException');
+      void shutdown('uncaughtException');
     });
     
     process.on('unhandledRejection', (reason, promise) => {
       logger.error('Unhandled rejection at:', promise, 'reason:', reason);
-      shutdown('unhandledRejection');
+      void shutdown('unhandledRejection');
     });
     
     // Start server

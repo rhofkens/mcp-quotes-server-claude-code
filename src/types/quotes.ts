@@ -5,7 +5,7 @@
 /**
  * Parameters for the getQuotes tool
  */
-export interface GetQuotesParams {
+export interface IGetQuotesParams {
   /** The name of the person whose quotes to find */
   person: string;
   /** Number of quotes to return (1-10) */
@@ -17,7 +17,7 @@ export interface GetQuotesParams {
 /**
  * A single quote object
  */
-export interface Quote {
+export interface IQuote {
   /** The quote text */
   text: string;
   /** The person who said the quote */
@@ -29,15 +29,15 @@ export interface Quote {
 /**
  * Response from the getQuotes tool
  */
-export interface GetQuotesResponse {
+export interface IGetQuotesResponse {
   /** Array of quotes found */
-  quotes: Quote[];
+  quotes: IQuote[];
 }
 
 /**
  * Serper.dev API search result item
  */
-export interface SerperSearchResult {
+export interface ISerperSearchResult {
   /** The snippet containing the quote */
   snippet: string;
   /** The source URL */
@@ -49,9 +49,9 @@ export interface SerperSearchResult {
 /**
  * Serper.dev API response
  */
-export interface SerperApiResponse {
+export interface ISerperApiResponse {
   /** Organic search results */
-  organic?: SerperSearchResult[];
+  organic?: ISerperSearchResult[];
   /** Error message if request failed */
   error?: string;
 }
@@ -59,7 +59,7 @@ export interface SerperApiResponse {
 /**
  * Prompt template variable definition
  */
-export interface PromptTemplateVariable {
+export interface IPromptTemplateVariable {
   /** Description of the variable */
   description: string;
   /** Whether the variable is required */
@@ -67,7 +67,7 @@ export interface PromptTemplateVariable {
   /** Type of the variable */
   type: 'string' | 'number' | 'array';
   /** Default value */
-  default?: any;
+  default?: unknown;
   /** Example values */
   examples?: string[];
   /** Constraints for the variable */
@@ -82,11 +82,11 @@ export interface PromptTemplateVariable {
 /**
  * Prompt template resource response
  */
-export interface PromptTemplateResponse {
+export interface IPromptTemplateResponse {
   /** The template string */
   template: string;
   /** Variables used in the template */
-  variables: Record<string, PromptTemplateVariable>;
+  variables: Record<string, IPromptTemplateVariable>;
   /** Template metadata */
   metadata?: {
     version: string;

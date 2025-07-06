@@ -4,8 +4,13 @@
  * Main server implementation using MCP SDK
  */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { 
   CallToolRequestSchema, 
   ListResourcesRequestSchema,
@@ -15,19 +20,20 @@ import {
   ErrorCode,
   McpError
 } from '@modelcontextprotocol/sdk/types.js';
-import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { logger } from './utils/logger.js';
-import { toolRegistry } from './tools/index.js';
+
 import { resourceRegistry } from './resources/index.js';
-import { getConfig } from './utils/config.js';
+import { toolRegistry } from './tools/index.js';
 import { HttpServerTransport } from './transports/http.js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
+import { getConfig } from './utils/config.js';
+import { logger } from './utils/logger.js';
 
 // Load package.json
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+interface IPackageJson {
+  name: string;
+  version: string;
+}
+const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8')) as IPackageJson;
 
 export class QuotesServer {
   private server: Server;
@@ -109,7 +115,7 @@ export class QuotesServer {
     });
     
     // Resource list handler
-    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    this.server.setRequestHandler(ListResourcesRequestSchema, () => {
       logger.info('Listing resources');
       return {
         resources: Object.values(resourceRegistry).map(r => r.definition)
@@ -152,7 +158,7 @@ export class QuotesServer {
     });
     
     // List tools handler
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+    this.server.setRequestHandler(ListToolsRequestSchema, () => {
       logger.info('Listing tools');
       return {
         tools: Object.values(toolRegistry).map(t => t.definition)
@@ -160,7 +166,7 @@ export class QuotesServer {
     });
     
     // List resource templates handler
-    this.server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
+    this.server.setRequestHandler(ListResourceTemplatesRequestSchema, () => {
       logger.info('Listing resource templates');
       return {
         resourceTemplates: []  // No resource templates defined yet
@@ -207,7 +213,7 @@ export class QuotesServer {
       
       // For HTTP transport, the endpoint is already logged by the transport
       if (config.transport === 'stdio') {
-        console.log('MCP server running in STDIO mode');
+        logger.info('MCP server running in STDIO mode');
       }
     } catch (error) {
       logger.error('Failed to start server', error);
@@ -237,6 +243,6 @@ export class QuotesServer {
 /**
  * Factory function to create a quotes server instance
  */
-export async function createQuotesServer(): Promise<QuotesServer> {
+export function createQuotesServer(): QuotesServer {
   return new QuotesServer();
 }

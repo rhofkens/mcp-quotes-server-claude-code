@@ -4,13 +4,14 @@
  * Enhanced version of getQuotes with full resilience patterns
  */
 
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+
 import { resilientSerperClient } from '../services/resilientSerperClient.js';
-import { Quote } from '../types/quotes.js';
-import { QuoteSchemas, validate } from '../utils/validation.js';
+import type { IQuote } from '../types/quotes.js';
+import { QuoteCache } from '../utils/cache.js';
 import { ValidationError, wrapError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
-import { QuoteCache } from '../utils/cache.js';
+import { QuoteSchemas, validate } from '../utils/validation.js';
 
 /**
  * Input schema for the getResilientQuotes tool
@@ -21,7 +22,7 @@ const getResilientQuotesSchema = QuoteSchemas.getQuotesParams;
  * Handler function for the getResilientQuotes tool
  */
 async function getResilientQuotesHandler(params: unknown): Promise<{ 
-  quotes: Quote[]; 
+  quotes: IQuote[]; 
   metadata?: {
     cached: boolean;
     stale?: boolean;
@@ -60,7 +61,7 @@ async function getResilientQuotesHandler(params: unknown): Promise<{
     const searchQuery = resilientSerperClient.buildQuoteSearchQuery(person, topic);
     
     // Track retry attempts
-    let retryCount = 0;
+    const retryCount = 0;
     
     try {
       // Search for quotes using resilient client
@@ -70,7 +71,7 @@ async function getResilientQuotesHandler(params: unknown): Promise<{
       });
       
       // Process search results into quotes
-      const quotes: Quote[] = [];
+      const quotes: IQuote[] = [];
       const seenQuotes = new Set<string>();
       
       for (const result of searchResults) {
@@ -83,7 +84,7 @@ async function getResilientQuotesHandler(params: unknown): Promise<{
         if (quoteText && !seenQuotes.has(quoteText)) {
           seenQuotes.add(quoteText);
           
-          const quote: Quote = {
+          const quote: IQuote = {
             text: quoteText,
             author: person,
           };
@@ -122,7 +123,7 @@ async function getResilientQuotesHandler(params: unknown): Promise<{
           if (quoteText && !seenQuotes.has(quoteText)) {
             seenQuotes.add(quoteText);
             
-            const quote: Quote = {
+            const quote: IQuote = {
               text: quoteText,
               author: person,
             };
@@ -239,10 +240,22 @@ export const getResilientQuotesTool: Tool = {
   handler: getResilientQuotesHandler,
 };
 
+interface IHealthStatus {
+  circuitBreaker: {
+    state: string;
+    failures: number;
+  };
+  cache: {
+    hits: number;
+    misses: number;
+  };
+  [key: string]: unknown;
+}
+
 /**
  * Get health status of the resilient quotes system
  */
-export async function getQuotesHealthStatus() {
+export async function getQuotesHealthStatus(): Promise<IHealthStatus & {recommendation: string}> {
   const health = await resilientSerperClient.getHealthStatus();
   
   return {
@@ -254,7 +267,7 @@ export async function getQuotesHealthStatus() {
 /**
  * Determine health recommendation based on status
  */
-function determineHealthRecommendation(health: any): string {
+function determineHealthRecommendation(health: IHealthStatus): string {
   const { circuitBreaker, cache } = health;
   
   if (circuitBreaker.state === 'OPEN') {

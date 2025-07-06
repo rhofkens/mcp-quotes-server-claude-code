@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+
 import {
   promptTemplateResource,
   promptTemplateHandler
@@ -242,7 +243,7 @@ describe('Prompt Template Resource', () => {
         variableReferences.forEach(ref => {
           const match = ref.match(/\{(\w+)\}/);
           if (match) {
-            if (match[1]) referencedVars.add(match[1]);
+            if (match[1]) {referencedVars.add(match[1]);}
           }
         });
         

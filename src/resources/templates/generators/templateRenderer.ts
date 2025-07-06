@@ -4,15 +4,17 @@
  * Renders quote templates with variable substitution and formatting
  */
 
-import {
+import type {
   QuoteTemplate,
   TemplateRenderContext,
   TemplateRenderResult,
-  OutputFormat,
   PostProcessor
 } from '../../../types/templates.js';
-import { TemplateValidator } from '../validators/templateValidator.js';
+import {
+  OutputFormat
+} from '../../../types/templates.js';
 import { logger } from '../../../utils/logger.js';
+import { TemplateValidator } from '../validators/templateValidator.js';
 
 /**
  * Template renderer class
