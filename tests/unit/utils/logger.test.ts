@@ -15,10 +15,15 @@ import {
 
 describe('Logger', () => {
   beforeEach(() => {
+    // Use fake timers to control async behavior
+    jest.useFakeTimers();
     jest.clearAllMocks();
   });
 
   afterEach(() => {
+    // Clear all timers to prevent open handles
+    jest.clearAllTimers();
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -79,8 +84,10 @@ describe('Logger', () => {
       
       perfLogger.start(operation);
       
-      // Simulate some work
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Simulate some work using fake timers
+      const promise = new Promise(resolve => setTimeout(resolve, 50));
+      jest.advanceTimersByTime(50);
+      await promise;
       
       // This should not throw
       expect(() => {
@@ -170,10 +177,11 @@ describe('Logger', () => {
       expect(requestLogger).toBeInstanceOf(RequestLogger);
     });
 
-    it('should maintain singleton behavior', () => {
-      // Import again to verify same instance
-      const { performanceLogger: pl2, requestLogger: rl2 } = 
-        require('../../../src/utils/logger.js');
+    it('should maintain singleton behavior', async () => {
+      // Dynamic import to verify same instance
+      const loggerModule = await import('../../../src/utils/logger.js');
+      const pl2 = loggerModule.performanceLogger;
+      const rl2 = loggerModule.requestLogger;
       
       expect(performanceLogger).toBe(pl2);
       expect(requestLogger).toBe(rl2);

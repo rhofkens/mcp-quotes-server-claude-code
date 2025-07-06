@@ -8,55 +8,80 @@ import path from 'path';
 
 import winston from 'winston';
 
-import { config } from './config.js';
+import { getConfig, type Config } from './config.js';
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');
+
+// Lazy config getter with defaults
+let cachedConfig: Config | null = null;
+function getSafeConfig(): Partial<Config> {
+  try {
+    if (!cachedConfig) {
+      cachedConfig = getConfig();
+    }
+    return cachedConfig;
+  } catch {
+    // Return defaults if config loading fails
+    return {
+      logLevel: 'info',
+      nodeEnv: 'development'
+    };
+  }
+}
 
 /**
  * Create Winston logger instance configured for MCP
  * IMPORTANT: No console output - would interfere with MCP STDIO protocol
  */
-const logger = winston.createLogger({
-  level: config.logLevel || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  transports: [
-    // File transport for all logs
-    new winston.transports.File({
-      filename: path.join(logsDir, 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    }),
-    new winston.transports.File({
-      filename: path.join(logsDir, 'combined.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    })
-  ],
-  // Prevent unhandled promise rejection from stopping the process
-  exitOnError: false
-});
+let loggerInstance: winston.Logger | null = null;
 
-// Add file transport for debug logs in development
-if (config.nodeEnv === 'development') {
-  logger.add(new winston.transports.File({
-    filename: path.join(logsDir, 'debug.log'),
-    level: 'debug',
-    maxsize: 5242880, // 5MB
-    maxFiles: 3
-  }));
+function getLogger(): winston.Logger {
+  if (!loggerInstance) {
+    const config = getSafeConfig();
+    loggerInstance = winston.createLogger({
+      level: config.logLevel || 'info',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+      ),
+      transports: [
+        // File transport for all logs
+        new winston.transports.File({
+          filename: path.join(logsDir, 'error.log'),
+          level: 'error',
+          maxsize: 5242880, // 5MB
+          maxFiles: 5
+        }),
+        new winston.transports.File({
+          filename: path.join(logsDir, 'combined.log'),
+          maxsize: 5242880, // 5MB
+          maxFiles: 5
+        })
+      ],
+      // Prevent unhandled promise rejection from stopping the process
+      exitOnError: false
+    });
+
+    // Add file transport for debug logs in development
+    if (config.nodeEnv === 'development') {
+      loggerInstance.add(new winston.transports.File({
+        filename: path.join(logsDir, 'debug.log'),
+        level: 'debug',
+        maxsize: 5242880, // 5MB
+        maxFiles: 3
+      }));
+    }
+  }
+  return loggerInstance;
 }
 
 /**
  * Create a child logger with additional context
  */
 export function createLogger(context: Record<string, any>) {
-  return logger.child(context);
+  return getLogger().child(context);
 }
 
 /**
@@ -67,20 +92,20 @@ export class PerformanceLogger {
 
   start(operation: string): void {
     this.timers.set(operation, Date.now());
-    logger.debug('Performance timer started', { operation });
+    getLogger().debug('Performance timer started', { operation });
   }
 
   end(operation: string, metadata?: Record<string, any>): void {
     const startTime = this.timers.get(operation);
     if (!startTime) {
-      logger.warn('Performance timer not found', { operation });
+      getLogger().warn('Performance timer not found', { operation });
       return;
     }
 
     const duration = Date.now() - startTime;
     this.timers.delete(operation);
     
-    logger.info('Operation completed', {
+    getLogger().info('Operation completed', {
       operation,
       duration,
       ...metadata
@@ -93,7 +118,7 @@ export class PerformanceLogger {
  */
 export class RequestLogger {
   logRequest(method: string, params: any, id?: string | number): void {
-    logger.info('Request received', {
+    getLogger().info('Request received', {
       type: 'request',
       method,
       id,
@@ -102,7 +127,7 @@ export class RequestLogger {
   }
 
   logResponse(method: string, result: any, id?: string | number, duration?: number): void {
-    logger.info('Response sent', {
+    getLogger().info('Response sent', {
       type: 'response',
       method,
       id,
@@ -112,7 +137,7 @@ export class RequestLogger {
   }
 
   logError(method: string, error: any, id?: string | number): void {
-    logger.error('Request error', {
+    getLogger().error('Request error', {
       type: 'error',
       method,
       id,
@@ -134,7 +159,12 @@ export class RequestLogger {
   }
 }
 
-// Export singleton instances
-export { logger };
+// Export a proxy object that looks like a logger but initializes lazily
+export const logger = new Proxy({} as winston.Logger, {
+  get(_target, prop) {
+    const actualLogger = getLogger();
+    return Reflect.get(actualLogger, prop);
+  }
+});
 export const performanceLogger = new PerformanceLogger();
 export const requestLogger = new RequestLogger();

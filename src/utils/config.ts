@@ -176,5 +176,3 @@ export function getEnvironmentConfig(): Partial<Config> {
   };
 }
 
-// Export singleton config instance
-export const config = getConfig();

@@ -264,8 +264,11 @@ describe('Enhanced Error Messages', () => {
       process.env['NODE_ENV'] = originalEnv;
     });
     
-    it('should include stack traces in development', () => {
-      const { resetConfig } = require('../../../src/utils/config.js');
+    it('should include stack traces in development', async () => {
+      // Dynamic import to get resetConfig
+      const configModule = await import('../../../src/utils/config.js');
+      const resetConfig = configModule.resetConfig;
+      
       process.env['NODE_ENV'] = 'development';
       resetConfig();
       const error = new BaseError('Test error', ErrorCode.INTERNAL_ERROR);
@@ -274,8 +277,11 @@ describe('Enhanced Error Messages', () => {
       expect(json['stack']).toBeDefined();
     });
     
-    it('should exclude stack traces in production', () => {
-      const { resetConfig } = require('../../../src/utils/config.js');
+    it('should exclude stack traces in production', async () => {
+      // Dynamic import to get resetConfig
+      const configModule = await import('../../../src/utils/config.js');
+      const resetConfig = configModule.resetConfig;
+      
       process.env['NODE_ENV'] = 'production';
       resetConfig();
       const error = new BaseError('Test error', ErrorCode.INTERNAL_ERROR);
