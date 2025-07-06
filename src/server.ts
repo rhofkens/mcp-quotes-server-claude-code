@@ -9,6 +9,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { 
   CallToolRequestSchema, 
   ListResourcesRequestSchema,
+  ListResourceTemplatesRequestSchema,
+  ListToolsRequestSchema,
   ReadResourceRequestSchema,
   ErrorCode,
   McpError
@@ -131,6 +133,22 @@ export class QuotesServer {
           `Resource read failed: ${error instanceof Error ? error.message : String(error)}`
         );
       }
+    });
+    
+    // List tools handler
+    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+      logger.info('Listing tools');
+      return {
+        tools: Object.values(toolRegistry).map(t => t.definition)
+      };
+    });
+    
+    // List resource templates handler
+    this.server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
+      logger.info('Listing resource templates');
+      return {
+        resourceTemplates: []  // No resource templates defined yet
+      };
     });
     
     // Register all tools
