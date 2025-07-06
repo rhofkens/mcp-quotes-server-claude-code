@@ -57,6 +57,40 @@ Add the server to your Claude Desktop configuration:
 }
 ```
 
+### Using HTTP Transport
+
+The server supports both STDIO (default) and HTTP transport modes. To use HTTP transport:
+
+```bash
+# Start the server with HTTP transport
+export MCP_TRANSPORT=http
+export MCP_HTTP_PORT=3000
+export MCP_HTTP_HOST=localhost
+export MCP_HTTP_PATH=/mcp
+export SERPER_API_KEY="your-serper-api-key"
+
+mcp-quotes-server
+```
+
+The server will start on `http://localhost:3000/mcp` and accept POST requests following the MCP Streamable HTTP transport specification (2025-03-26).
+
+#### HTTP Transport Configuration
+
+- `MCP_TRANSPORT`: Set to `http` to enable HTTP transport (default: `stdio`)
+- `MCP_HTTP_PORT`: Port for the HTTP server (default: `3000`)
+- `MCP_HTTP_HOST`: Host for the HTTP server (default: `localhost`)
+- `MCP_HTTP_PATH`: Path for the MCP endpoint (default: `/mcp`)
+
+#### Testing HTTP Transport
+
+```bash
+# Start server in HTTP mode
+MCP_TRANSPORT=http SERPER_API_KEY="your-key" npm run dev
+
+# The server will log the HTTP endpoint URL
+# Use MCP clients that support HTTP transport to connect
+```
+
 ## API
 
 ### Tools
@@ -152,6 +186,10 @@ The server requires the following environment variable:
 Optional configuration:
 - `NODE_ENV`: Set to 'production' for production deployments
 - `LOG_LEVEL`: Set logging level (debug, info, warn, error)
+- `MCP_TRANSPORT`: Transport type - 'stdio' (default) or 'http'
+- `MCP_HTTP_PORT`: HTTP server port when using HTTP transport (default: 3000)
+- `MCP_HTTP_HOST`: HTTP server host when using HTTP transport (default: localhost)
+- `MCP_HTTP_PATH`: HTTP endpoint path when using HTTP transport (default: /mcp)
 
 ## Architecture
 

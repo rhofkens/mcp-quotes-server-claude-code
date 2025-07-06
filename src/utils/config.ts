@@ -24,6 +24,12 @@ export const NodeEnv = z.enum(['development', 'test', 'production']);
 export type NodeEnv = z.infer<typeof NodeEnv>;
 
 /**
+ * Transport types supported by the MCP server
+ */
+export const TransportType = z.enum(['stdio', 'http']);
+export type TransportType = z.infer<typeof TransportType>;
+
+/**
  * Configuration schema using Zod for validation
  */
 const ConfigSchema = z.object({
@@ -35,6 +41,12 @@ const ConfigSchema = z.object({
   logLevel: LogLevel.default('info'),
   serverPort: z.number().int().positive().default(3000),
   serverHost: z.string().default('localhost'),
+  
+  // Transport configuration
+  transport: TransportType.default('stdio'),
+  httpPort: z.number().int().positive().default(3000),
+  httpHost: z.string().default('localhost'),
+  httpPath: z.string().default('/mcp'),
   
   // API configuration
   apiTimeout: z.number().int().positive().default(5000),
@@ -61,6 +73,12 @@ function loadConfig(): Config {
       logLevel: process.env['LOG_LEVEL'],
       serverPort: process.env['SERVER_PORT'] ? parseInt(process.env['SERVER_PORT'], 10) : undefined,
       serverHost: process.env['SERVER_HOST'],
+      
+      // Transport
+      transport: process.env['MCP_TRANSPORT'],
+      httpPort: process.env['MCP_HTTP_PORT'] ? parseInt(process.env['MCP_HTTP_PORT'], 10) : undefined,
+      httpHost: process.env['MCP_HTTP_HOST'],
+      httpPath: process.env['MCP_HTTP_PATH'],
       
       // API
       apiTimeout: process.env['API_TIMEOUT'] ? parseInt(process.env['API_TIMEOUT'], 10) : undefined,
