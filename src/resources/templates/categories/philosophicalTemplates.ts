@@ -4,13 +4,13 @@
  * Pre-defined templates for philosophical quote requests
  */
 
-import type { QuoteTemplate} from '../../../types/templates.js';
+import type { IQuoteTemplate} from '../../../types/templates.js';
 import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js';
 
 /**
  * Ancient wisdom template
  */
-export const ancientWisdomTemplate: QuoteTemplate = {
+export const ancientWisdomTemplate: IQuoteTemplate = {
   metadata: {
     id: 'ancient-wisdom',
     name: 'Ancient Philosophical Wisdom',
@@ -102,7 +102,7 @@ export const ancientWisdomTemplate: QuoteTemplate = {
 /**
  * Existential philosophy template
  */
-export const existentialPhilosophyTemplate: QuoteTemplate = {
+export const existentialPhilosophyTemplate: IQuoteTemplate = {
   metadata: {
     id: 'existential-philosophy',
     name: 'Existential Philosophy',
@@ -181,7 +181,7 @@ export const existentialPhilosophyTemplate: QuoteTemplate = {
 /**
  * Modern philosophy template
  */
-export const modernPhilosophyTemplate: QuoteTemplate = {
+export const modernPhilosophyTemplate: IQuoteTemplate = {
   metadata: {
     id: 'modern-philosophy',
     name: 'Modern Philosophical Insights',
@@ -257,7 +257,7 @@ export const modernPhilosophyTemplate: QuoteTemplate = {
 /**
  * Stoic philosophy template
  */
-export const stoicPhilosophyTemplate: QuoteTemplate = {
+export const stoicPhilosophyTemplate: IQuoteTemplate = {
   metadata: {
     id: 'stoic-philosophy',
     name: 'Stoic Philosophy',
@@ -343,7 +343,7 @@ export const stoicPhilosophyTemplate: QuoteTemplate = {
 /**
  * Eastern philosophy template
  */
-export const easternPhilosophyTemplate: QuoteTemplate = {
+export const easternPhilosophyTemplate: IQuoteTemplate = {
   metadata: {
     id: 'eastern-philosophy',
     name: 'Eastern Philosophy',
@@ -444,7 +444,7 @@ export const easternPhilosophyTemplate: QuoteTemplate = {
 /**
  * Export all philosophical templates
  */
-export const philosophicalTemplates: QuoteTemplate[] = [
+export const philosophicalTemplates: IQuoteTemplate[] = [
   ancientWisdomTemplate,
   existentialPhilosophyTemplate,
   modernPhilosophyTemplate,

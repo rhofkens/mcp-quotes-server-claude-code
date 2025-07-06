@@ -89,14 +89,14 @@ export class TemplateRenderer {
    * Validate rendering context
    */
   private static validateContext(
-    template: QuoteTemplate,
-    context: TemplateRenderContext
+    template: IQuoteTemplate,
+    context: ITemplateRenderContext
   ): { isValid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
 
     // Check required variables
-    template.variables.forEach(variable => {
+    template.variables.forEach((variable) => {
       const value = context.variables[variable.name];
 
       if (variable.required && (value === undefined || value === null)) {
@@ -116,7 +116,7 @@ export class TemplateRenderer {
 
     // Warn about extra variables
     const definedVariables = new Set(template.variables.map(v => v.name));
-    Object.keys(context.variables).forEach(varName => {
+    Object.keys(context.variables).forEach((varName) => {
       if (!definedVariables.has(varName)) {
         warnings.push(`Unknown variable "${varName}" provided`);
       }
@@ -133,12 +133,12 @@ export class TemplateRenderer {
    * Apply default values for missing variables
    */
   private static applyDefaults(
-    template: QuoteTemplate,
+    template: IQuoteTemplate,
     providedVariables: Record<string, any>
   ): Record<string, any> {
     const variables: Record<string, any> = { ...providedVariables };
 
-    template.variables.forEach(variable => {
+    template.variables.forEach((variable) => {
       if (
         (variables[variable.name] === undefined || variables[variable.name] === null) &&
         variable.defaultValue !== undefined
@@ -207,7 +207,7 @@ export class TemplateRenderer {
    */
   private static async applyComponents(
     content: string,
-    components: QuoteTemplate['components'],
+    components: IQuoteTemplate['components'],
     variables: Record<string, any>
   ): Promise<string> {
     if (!components || components.length === 0) {
@@ -341,8 +341,8 @@ export class TemplateRenderer {
         return content.charAt(0).toUpperCase() + content.slice(1);
       
       case 'truncate':
-        const maxLength = options?.['maxLength'] || 100;
-        const ellipsis = options?.['ellipsis'] || '...';
+        const maxLength = (options?.['maxLength'] as number) || 100;
+        const ellipsis = (options?.['ellipsis'] as string) || '...';
         return content.length > maxLength 
           ? content.substring(0, maxLength - ellipsis.length) + ellipsis
           : content;
@@ -360,20 +360,20 @@ export class TemplateRenderer {
 
     switch (name) {
       case 'minLength':
-        if (content.length < (options?.['min'] || 0)) {
+        if (content.length < ((options?.['min'] as number) || 0)) {
           throw new Error(`Content length ${content.length} is below minimum ${options?.['min']}`);
         }
         break;
       
       case 'maxLength':
-        if (content.length > (options?.['max'] || Infinity)) {
+        if (content.length > ((options?.['max'] as number) || Infinity)) {
           throw new Error(`Content length ${content.length} exceeds maximum ${options?.['max']}`);
         }
         break;
       
       case 'pattern':
         if (options?.['pattern']) {
-          const regex = new RegExp(options['pattern']);
+          const regex = new RegExp(options['pattern'] as string);
           if (!regex.test(content)) {
             throw new Error(`Content does not match required pattern`);
           }
@@ -391,21 +391,21 @@ export class TemplateRenderer {
     switch (name) {
       case 'replace':
         if (options?.['search'] && options?.['replace'] !== undefined) {
-          const flags = options['flags'] || 'g';
-          const regex = new RegExp(options['search'], flags);
-          return content.replace(regex, options['replace']);
+          const flags = (options['flags'] as string) || 'g';
+          const regex = new RegExp(options['search'] as string, flags);
+          return content.replace(regex, options['replace'] as string);
         }
         return content;
       
       case 'split-lines':
-        const separator = options?.['separator'] || '\n';
+        const separator = (options?.['separator'] as string) || '\n';
         const splitLines = content.split('\n');
         return splitLines.join(separator);
       
       case 'number-lines':
-        const startNum = options?.['start'] || 1;
+        const startNum = (options?.['start'] as number) || 1;
         const numberLines = content.split('\n');
-        return numberLines.map((line, index) => 
+        return numberLines.map((line: string, index: number) => 
           `${startNum + index}. ${line}`
         ).join('\n');
       

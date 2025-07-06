@@ -4,13 +4,13 @@
  * Pre-defined templates for motivational quote requests
  */
 
-import type { QuoteTemplate} from '../../../types/templates.js';
+import type { IQuoteTemplate} from '../../../types/templates.js';
 import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js';
 
 /**
  * Morning motivation template
  */
-export const morningMotivationTemplate: QuoteTemplate = {
+export const morningMotivationTemplate: IQuoteTemplate = {
   metadata: {
     id: 'morning-motivation',
     name: 'Morning Motivation',
@@ -115,7 +115,7 @@ export const morningMotivationTemplate: QuoteTemplate = {
 /**
  * Fitness motivation template
  */
-export const fitnessMotivationTemplate: QuoteTemplate = {
+export const fitnessMotivationTemplate: IQuoteTemplate = {
   metadata: {
     id: 'fitness-motivation',
     name: 'Fitness Motivation',
@@ -191,7 +191,7 @@ export const fitnessMotivationTemplate: QuoteTemplate = {
 /**
  * Goal achievement template
  */
-export const goalAchievementTemplate: QuoteTemplate = {
+export const goalAchievementTemplate: IQuoteTemplate = {
   metadata: {
     id: 'goal-achievement',
     name: 'Goal Achievement Motivation',
@@ -271,7 +271,7 @@ export const goalAchievementTemplate: QuoteTemplate = {
 /**
  * Overcome challenges template
  */
-export const overcomeChallengesTemplate: QuoteTemplate = {
+export const overcomeChallengesTemplate: IQuoteTemplate = {
   metadata: {
     id: 'overcome-challenges',
     name: 'Overcome Challenges',
@@ -347,7 +347,7 @@ export const overcomeChallengesTemplate: QuoteTemplate = {
 /**
  * Export all motivational templates
  */
-export const motivationalTemplates: QuoteTemplate[] = [
+export const motivationalTemplates: IQuoteTemplate[] = [
   morningMotivationTemplate,
   fitnessMotivationTemplate,
   goalAchievementTemplate,
