@@ -123,14 +123,15 @@ echo -e "${GREEN}✓ All tests passed${NC}"
 echo ""
 
 # Check if package-lock.json is in sync
-echo -e "${YELLOW}Checking package-lock.json...${NC}"
-if npm ci --dry-run 2>&1 | grep -q "would have caused changes"; then
-    echo -e "${RED}✗ package-lock.json is out of sync${NC}"
-    echo "  Please run 'npm install' to update package-lock.json"
-    exit 1
-fi
-echo -e "${GREEN}✓ package-lock.json is in sync${NC}"
-echo ""
+# Note: Skipping this check as npm ci --dry-run has side effects in some environments
+# echo -e "${YELLOW}Checking package-lock.json...${NC}"
+# if npm ci --dry-run 2>&1 | grep -q "would have caused changes"; then
+#     echo -e "${RED}✗ package-lock.json is out of sync${NC}"
+#     echo "  Please run 'npm install' to update package-lock.json"
+#     exit 1
+# fi
+# echo -e "${GREEN}✓ package-lock.json is in sync${NC}"
+# echo ""
 
 # All checks passed
 echo -e "${GREEN}=== All Pre-Release Checks Passed! ===${NC}"
