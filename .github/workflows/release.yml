@@ -103,8 +103,6 @@ jobs:
             https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.ref }}
           draft: false
           prerelease: false
-          files: |
-            dist/**/*
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
