@@ -95,7 +95,7 @@ jobs:
             ## Installation
 
             ```bash
-            npm install @mcp/quotes-server@${{ steps.extract_version.outputs.VERSION }}
+            npm install @rhofkens/mcp-quotes-server-claude-code@${{ steps.extract_version.outputs.VERSION }}
             ```
 
             ## Full Changelog

@@ -1,12 +1,12 @@
 {
-  "name": "mcp-quotes-server",
+  "name": "@rhofkens/mcp-quotes-server-claude-code",
   "version": "1.0.5",
   "description": "Model Context Protocol (MCP) server for managing and serving quotes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
-    "mcp-quotes-server": "./dist/index.js"
+    "mcp-quotes-server-claude-code": "./dist/index.js"
   },
   "engines": {
     "node": ">=18.0.0"

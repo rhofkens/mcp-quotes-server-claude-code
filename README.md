@@ -1,8 +1,8 @@
 # MCP Quotes Server
 
-[![npm version](https://badge.fury.io/js/mcp-quotes-server.svg)](https://www.npmjs.com/package/mcp-quotes-server)
+[![npm version](https://badge.fury.io/js/@rhofkens/mcp-quotes-server-claude-code.svg)](https://www.npmjs.com/package/@rhofkens/mcp-quotes-server-claude-code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://github.com/yourusername/mcp-quotes-server/workflows/CI/badge.svg)](https://github.com/yourusername/mcp-quotes-server/actions)
+[![Build Status](https://github.com/rhofkens/mcp-quotes-server-claude-code/workflows/CI/badge.svg)](https://github.com/rhofkens/mcp-quotes-server-claude-code/actions)
 
 A Model Context Protocol (MCP) server that provides a simple tool for searching quotes from famous and not-so-famous people using the Serper.dev API.
 
@@ -25,26 +25,26 @@ A Model Context Protocol (MCP) server that provides a simple tool for searching 
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g mcp-quotes-server
+npm install -g @rhofkens/mcp-quotes-server-claude-code
 ```
 
 ### Or use directly with npx
 
 ```bash
-npx mcp-quotes-server
+npx @rhofkens/mcp-quotes-server-claude-code
 ```
 
 ## Quick Start
 
 ```bash
 # Install globally
-npm install -g mcp-quotes-server
+npm install -g @rhofkens/mcp-quotes-server-claude-code
 
 # Set your Serper.dev API key
 export SERPER_API_KEY="your-serper-api-key"
 
 # Run the server
-mcp-quotes-server
+mcp-quotes-server-claude-code
 ```
 
 ## Usage
@@ -57,7 +57,7 @@ After global installation:
 export SERPER_API_KEY="your-serper-api-key"
 
 # Run the server
-mcp-quotes-server
+mcp-quotes-server-claude-code
 ```
 
 Or run directly without installation:
@@ -66,14 +66,14 @@ Or run directly without installation:
 export SERPER_API_KEY="your-serper-api-key"
 
 # Run with npx
-npx mcp-quotes-server
+npx @rhofkens/mcp-quotes-server-claude-code
 ```
 
 ### Testing with MCP Inspector
 
 ```bash
 # Test the server using MCP Inspector
-npx @modelcontextprotocol/inspector npx mcp-quotes-server
+npx @modelcontextprotocol/inspector npx @rhofkens/mcp-quotes-server-claude-code
 ```
 
 ### Using with Claude Desktop
@@ -85,7 +85,7 @@ Add the server to your Claude Desktop configuration:
 {
   "mcpServers": {
     "quotes": {
-      "command": "mcp-quotes-server",
+      "command": "mcp-quotes-server-claude-code",
       "env": {
         "SERPER_API_KEY": "your-serper-api-key"
       }
@@ -100,7 +100,7 @@ Add the server to your Claude Desktop configuration:
   "mcpServers": {
     "quotes": {
       "command": "npx",
-      "args": ["mcp-quotes-server"],
+      "args": ["@rhofkens/mcp-quotes-server-claude-code"],
       "env": {
         "SERPER_API_KEY": "your-serper-api-key"
       }
@@ -121,7 +121,7 @@ export MCP_HTTP_HOST=localhost
 export MCP_HTTP_PATH=/mcp
 export SERPER_API_KEY="your-serper-api-key"
 
-mcp-quotes-server
+mcp-quotes-server-claude-code
 ```
 
 The server will start on `http://localhost:3000/mcp` and accept POST requests following the MCP Streamable HTTP transport specification (2025-03-26).
@@ -272,8 +272,8 @@ Multiple structured templates for different quote-related use cases.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mcp-quotes-server.git
-cd mcp-quotes-server
+git clone https://github.com/rhofkens/mcp-quotes-server-claude-code.git
+cd mcp-quotes-server-claude-code
 
 # Install dependencies
 npm install
@@ -321,7 +321,7 @@ npm run test:coverage
 # Test the server manually
 npm run dev
 # In another terminal:
-npx @modelcontextprotocol/inspector npx mcp-quotes-server
+npx @modelcontextprotocol/inspector npx @rhofkens/mcp-quotes-server-claude-code
 ```
 
 ## Configuration
@@ -433,9 +433,9 @@ Enable debug logging for detailed troubleshooting:
 ```bash
 export LOG_LEVEL=debug
 export NODE_ENV=development
-mcp-quotes-server  # If installed globally
+mcp-quotes-server-claude-code  # If installed globally
 # OR
-npx mcp-quotes-server  # If using npx
+npx @rhofkens/mcp-quotes-server-claude-code  # If using npx
 ```
 
 ## Contributing

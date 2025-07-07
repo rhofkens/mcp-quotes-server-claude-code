@@ -16,9 +16,9 @@ NC='\033[0m' # No Color
 # Clear screen for better visibility
 clear
 
-echo -e "${BLUE}╔═══════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║     MCP Quotes Server Release Tool     ║${NC}"
-echo -e "${BLUE}╚═══════════════════════════════════════╝${NC}"
+echo -e "${BLUE}╔═══════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║     MCP Quotes Server Claude Code Release Tool     ║${NC}"
+echo -e "${BLUE}╚═══════════════════════════════════════════════════╝${NC}"
 echo ""
 
 # Run pre-release checks
