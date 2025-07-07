@@ -1,6 +1,6 @@
 {
   "name": "mcp-quotes-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Model Context Protocol (MCP) server for managing and serving quotes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
