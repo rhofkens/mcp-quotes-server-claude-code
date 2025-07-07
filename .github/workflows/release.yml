@@ -34,6 +34,7 @@ jobs:
         run: npm test
         env:
           CI: true
+          SERPER_API_KEY: dummy-key-for-tests
 
       - name: Build project
         run: npm run build
