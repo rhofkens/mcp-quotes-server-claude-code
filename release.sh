@@ -44,30 +44,16 @@ fi
 echo -e "Current version: ${YELLOW}$CURRENT_VERSION${NC}"
 echo ""
 
-# Calculate next versions
-# Temporarily disable exit on error for version calculations
-set +e
-
-PATCH_VERSION=$(npm version patch --no-git-tag-version --no-commit-hooks 2>/dev/null | sed 's/v//')
-npm version $CURRENT_VERSION --no-git-tag-version --no-commit-hooks --force > /dev/null 2>&1
-
-MINOR_VERSION=$(npm version minor --no-git-tag-version --no-commit-hooks 2>/dev/null | sed 's/v//')
-npm version $CURRENT_VERSION --no-git-tag-version --no-commit-hooks --force > /dev/null 2>&1
-
-MAJOR_VERSION=$(npm version major --no-git-tag-version --no-commit-hooks 2>/dev/null | sed 's/v//')
-npm version $CURRENT_VERSION --no-git-tag-version --no-commit-hooks --force > /dev/null 2>&1
-
-# Re-enable exit on error
-set -e
+# Calculate next versions using Node.js to avoid triggering npm lifecycle scripts
+PATCH_VERSION=$(node -e "const v='$CURRENT_VERSION'.split('.'); v[2]=parseInt(v[2])+1; console.log(v.join('.'))")
+MINOR_VERSION=$(node -e "const v='$CURRENT_VERSION'.split('.'); v[1]=parseInt(v[1])+1; v[2]=0; console.log(v.join('.'))")
+MAJOR_VERSION=$(node -e "const v='$CURRENT_VERSION'.split('.'); v[0]=parseInt(v[0])+1; v[1]=0; v[2]=0; console.log(v.join('.'))")
 
 # Validate that version calculations succeeded
 if [ -z "$PATCH_VERSION" ] || [ -z "$MINOR_VERSION" ] || [ -z "$MAJOR_VERSION" ]; then
-    echo -e "${RED}Error: Failed to calculate next versions. This might be due to:${NC}"
-    echo "  - Uncommitted changes in your working directory"
-    echo "  - Invalid package.json format"
-    echo "  - Missing npm or node installation"
-    echo ""
-    echo "Please run 'git status' to check for uncommitted changes."
+    echo -e "${RED}Error: Failed to calculate next versions${NC}"
+    echo "Current version: $CURRENT_VERSION"
+    echo "Please ensure the version in package.json is in valid semver format (x.y.z)"
     exit 1
 fi
 
