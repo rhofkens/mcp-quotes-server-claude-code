@@ -42,10 +42,10 @@ Before creating a release, ensure all items are checked:
    npm version <major|minor|patch>
    ```
 
-3. **Update CHANGELOG.md**:
-   - Add release date to unreleased section
-   - Create new unreleased section for future changes
-   - Update comparison links at bottom
+3. **Prepare Release Notes**:
+   - Review all commits since last release
+   - Group changes by type (Added, Changed, Fixed, etc.)
+   - Highlight breaking changes if any
 
 4. **Commit version bump**:
    ```bash

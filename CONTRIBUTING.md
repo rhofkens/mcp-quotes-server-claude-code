@@ -52,7 +52,7 @@ For security vulnerabilities, please email the maintainers directly instead of o
   - Related issues (use "Fixes #123" syntax)
 - **Keep PRs focused** - one feature/fix per PR
 - **Add tests** - all new code must have test coverage
-- **Update CHANGELOG.md** for user-facing changes
+- **Include clear commit messages** for user-facing changes
 
 ## Code Style Guidelines
 
@@ -180,7 +180,7 @@ Update README.md when:
 
 ### Changelog
 
-- Update CHANGELOG.md following [Keep a Changelog](https://keepachangelog.com/) format
+- Use clear, descriptive commit messages that explain changes
 - Group changes by type: Added, Changed, Deprecated, Removed, Fixed, Security
 - Include issue/PR references
 
