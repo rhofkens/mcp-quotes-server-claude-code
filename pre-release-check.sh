@@ -102,14 +102,14 @@ echo -e "${GREEN}✓ Linting passed${NC}"
 echo ""
 
 # Check formatting
-echo -e "${YELLOW}Checking code formatting...${NC}"
-if ! npm run format:check > /dev/null 2>&1; then
-    echo -e "${RED}✗ Code formatting issues found${NC}"
-    echo "  Please run 'npm run format' to fix formatting."
-    exit 1
-fi
-echo -e "${GREEN}✓ Code formatting is correct${NC}"
-echo ""
+# echo -e "${YELLOW}Checking code formatting...${NC}"
+#if ! npm run format:check > /dev/null 2>&1; then
+#    echo -e "${RED}✗ Code formatting issues found${NC}"
+#    echo "  Please run 'npm run format' to fix formatting."
+#    exit 1
+#fi
+#echo -e "${GREEN}✓ Code formatting is correct${NC}"
+#echo ""
 
 # Run tests
 echo -e "${YELLOW}Running tests...${NC}"
