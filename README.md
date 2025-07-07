@@ -1,8 +1,15 @@
 # MCP Quotes Server
 
-[![npm version](https://badge.fury.io/js/@rhofkens/mcp-quotes-server-claude-code.svg)](https://www.npmjs.com/package/@rhofkens/mcp-quotes-server-claude-code)
+[![npm version](https://badge.fury.io/js/@rhofkens%2Fmcp-quotes-server-claude-code.svg)](https://www.npmjs.com/package/@rhofkens/mcp-quotes-server-claude-code)
+[![Downloads](https://img.shields.io/npm/dm/@rhofkens/mcp-quotes-server-claude-code.svg)](https://www.npmjs.com/package/@rhofkens/mcp-quotes-server-claude-code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://github.com/rhofkens/mcp-quotes-server-claude-code/workflows/CI/badge.svg)](https://github.com/rhofkens/mcp-quotes-server-claude-code/actions)
+
+[![node version](https://img.shields.io/node/v/@rhofkens/mcp-quotes-server-claude-code.svg)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blueviolet.svg)](https://modelcontextprotocol.io)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/rhofkens/mcp-quotes-server-claude-code/pulls)
 
 A Model Context Protocol (MCP) server that provides a simple tool for searching quotes from famous and not-so-famous people using the Serper.dev API.
 
