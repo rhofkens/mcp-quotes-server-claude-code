@@ -1,6 +1,6 @@
 /**
  * MCP Quotes Server - Template System Types
- * 
+ *
  * Comprehensive type definitions for the quote prompt template system
  * Supporting categories, versioning, dynamic variables, and template composition
  */
@@ -23,7 +23,7 @@ export enum TemplateCategory {
   TECHNOLOGY = 'technology',
   SPORTS = 'sports',
   CREATIVITY = 'creativity',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 /**
@@ -36,7 +36,7 @@ export enum VariableType {
   ENUM = 'enum',
   DATE = 'date',
   ARRAY = 'array',
-  OBJECT = 'object'
+  OBJECT = 'object',
 }
 
 /**
@@ -48,7 +48,7 @@ export enum OutputFormat {
   MARKDOWN = 'markdown',
   HTML = 'html',
   CSV = 'csv',
-  XML = 'xml'
+  XML = 'xml',
 }
 
 /**
@@ -56,25 +56,25 @@ export enum OutputFormat {
  */
 export interface ITemplateVariable {
   /** Variable name used in template */
-  name: string;
+  name: string
   /** Human-readable display name */
-  displayName: string;
+  displayName: string
   /** Detailed description */
-  description: string;
+  description: string
   /** Variable type for validation */
-  type: VariableType;
+  type: VariableType
   /** Whether the variable is required */
-  required: boolean;
+  required: boolean
   /** Default value if not provided */
-  defaultValue?: any;
+  defaultValue?: any
   /** Validation rules */
-  validation?: IVariableValidation;
+  validation?: IVariableValidation
   /** Example values */
-  examples?: any[];
+  examples?: any[]
   /** For enum types, allowed values */
-  enumValues?: string[];
+  enumValues?: string[]
   /** UI hints for rendering */
-  uiHints?: IVariableUIHints;
+  uiHints?: IVariableUIHints
 }
 
 /**
@@ -82,15 +82,15 @@ export interface ITemplateVariable {
  */
 export interface IVariableValidation {
   /** Minimum value/length */
-  min?: number;
+  min?: number
   /** Maximum value/length */
-  max?: number;
+  max?: number
   /** Regular expression pattern */
-  pattern?: string;
+  pattern?: string
   /** Custom validation function name */
-  customValidator?: string;
+  customValidator?: string
   /** Error message for validation failure */
-  errorMessage?: string;
+  errorMessage?: string
 }
 
 /**
@@ -98,15 +98,15 @@ export interface IVariableValidation {
  */
 export interface IVariableUIHints {
   /** Input type hint */
-  inputType?: 'text' | 'textarea' | 'select' | 'multiselect' | 'date' | 'number' | 'checkbox';
+  inputType?: 'text' | 'textarea' | 'select' | 'multiselect' | 'date' | 'number' | 'checkbox'
   /** Placeholder text */
-  placeholder?: string;
+  placeholder?: string
   /** Help text */
-  helpText?: string;
+  helpText?: string
   /** Display order */
-  order?: number;
+  order?: number
   /** Group name for organizing variables */
-  group?: string;
+  group?: string
 }
 
 /**
@@ -114,29 +114,29 @@ export interface IVariableUIHints {
  */
 export interface ITemplateMetadata {
   /** Template unique identifier */
-  id: string;
+  id: string
   /** Template name */
-  name: string;
+  name: string
   /** Template description */
-  description: string;
+  description: string
   /** Template category */
-  category: TemplateCategory;
+  category: TemplateCategory
   /** Template tags for search/filtering */
-  tags: string[];
+  tags: string[]
   /** Template author */
-  author: string;
+  author: string
   /** Creation date */
-  createdAt: Date;
+  createdAt: Date
   /** Last update date */
-  updatedAt: Date;
+  updatedAt: Date
   /** Template version */
-  version: string;
+  version: string
   /** Whether template is deprecated */
-  deprecated?: boolean;
+  deprecated?: boolean
   /** Deprecation message if deprecated */
-  deprecationMessage?: string;
+  deprecationMessage?: string
   /** Usage statistics */
-  usageStats?: ITemplateUsageStats;
+  usageStats?: ITemplateUsageStats
 }
 
 /**
@@ -144,13 +144,13 @@ export interface ITemplateMetadata {
  */
 export interface ITemplateUsageStats {
   /** Total number of uses */
-  totalUses: number;
+  totalUses: number
   /** Last used date */
-  lastUsed?: Date;
+  lastUsed?: Date
   /** Average rating */
-  averageRating?: number;
+  averageRating?: number
   /** Number of ratings */
-  ratingCount?: number;
+  ratingCount?: number
 }
 
 /**
@@ -158,21 +158,21 @@ export interface ITemplateUsageStats {
  */
 export interface IQuoteTemplate {
   /** Template metadata */
-  metadata: ITemplateMetadata;
+  metadata: ITemplateMetadata
   /** Template content with variable placeholders */
-  content: string;
+  content: string
   /** Variable definitions */
-  variables: ITemplateVariable[];
+  variables: ITemplateVariable[]
   /** Output format configuration */
-  outputFormat: IOutputFormatConfig;
+  outputFormat: IOutputFormatConfig
   /** Parent template ID for inheritance */
-  extends?: string;
+  extends?: string
   /** Template components for composition */
-  components?: ITemplateComponent[];
+  components?: ITemplateComponent[]
   /** Post-processing steps */
-  postProcessors?: IPostProcessor[];
+  postProcessors?: IPostProcessor[]
   /** Example usage */
-  examples?: ITemplateExample[];
+  examples?: ITemplateExample[]
 }
 
 /**
@@ -180,11 +180,11 @@ export interface IQuoteTemplate {
  */
 export interface IOutputFormatConfig {
   /** Primary output format */
-  format: OutputFormat;
+  format: OutputFormat
   /** Format-specific options */
-  options?: Record<string, unknown>;
+  options?: Record<string, unknown>
   /** Alternative formats supported */
-  alternativeFormats?: OutputFormat[];
+  alternativeFormats?: OutputFormat[]
 }
 
 /**
@@ -192,15 +192,15 @@ export interface IOutputFormatConfig {
  */
 export interface ITemplateComponent {
   /** Component ID */
-  id: string;
+  id: string
   /** Component type */
-  type: 'prefix' | 'suffix' | 'wrapper' | 'conditional';
+  type: 'prefix' | 'suffix' | 'wrapper' | 'conditional'
   /** Component content or template reference */
-  content: string;
+  content: string
   /** Condition for conditional components */
-  condition?: string;
+  condition?: string
   /** Order of application */
-  order?: number;
+  order?: number
 }
 
 /**
@@ -208,13 +208,13 @@ export interface ITemplateComponent {
  */
 export interface IPostProcessor {
   /** Processor name */
-  name: string;
+  name: string
   /** Processor type */
-  type: 'formatter' | 'validator' | 'transformer' | 'enricher';
+  type: 'formatter' | 'validator' | 'transformer' | 'enricher'
   /** Processor options */
-  options?: Record<string, unknown>;
+  options?: Record<string, unknown>
   /** Order of execution */
-  order?: number;
+  order?: number
 }
 
 /**
@@ -222,13 +222,13 @@ export interface IPostProcessor {
  */
 export interface ITemplateExample {
   /** Example name */
-  name: string;
+  name: string
   /** Example description */
-  description?: string;
+  description?: string
   /** Variable values */
-  variables: Record<string, any>;
+  variables: Record<string, any>
   /** Expected output */
-  expectedOutput: string;
+  expectedOutput: string
 }
 
 /**
@@ -236,17 +236,17 @@ export interface ITemplateExample {
  */
 export interface ITemplateVersion {
   /** Version number */
-  version: string;
+  version: string
   /** Template content at this version */
-  template: IQuoteTemplate;
+  template: IQuoteTemplate
   /** Change description */
-  changeDescription: string;
+  changeDescription: string
   /** Version author */
-  author: string;
+  author: string
   /** Version date */
-  date: Date;
+  date: Date
   /** Whether this is the current version */
-  isCurrent: boolean;
+  isCurrent: boolean
 }
 
 /**
@@ -254,15 +254,15 @@ export interface ITemplateVersion {
  */
 export interface ITemplateRepository {
   /** Get template by ID */
-  getTemplate(id: string, version?: string): Promise<IQuoteTemplate | null>;
+  getTemplate(id: string, version?: string): Promise<IQuoteTemplate | null>
   /** List templates by category */
-  listByCategory(category: TemplateCategory): Promise<IQuoteTemplate[]>;
+  listByCategory(category: TemplateCategory): Promise<IQuoteTemplate[]>
   /** Search templates */
-  searchTemplates(query: ITemplateSearchQuery): Promise<IQuoteTemplate[]>;
+  searchTemplates(query: ITemplateSearchQuery): Promise<IQuoteTemplate[]>
   /** Save template */
-  saveTemplate(template: IQuoteTemplate): Promise<void>;
+  saveTemplate(template: IQuoteTemplate): Promise<void>
   /** Get template versions */
-  getVersionHistory(id: string): Promise<ITemplateVersion[]>;
+  getVersionHistory(id: string): Promise<ITemplateVersion[]>
 }
 
 /**
@@ -270,22 +270,22 @@ export interface ITemplateRepository {
  */
 export interface ITemplateSearchQuery {
   /** Search text */
-  text?: string;
+  text?: string
   /** Filter by categories */
-  categories?: TemplateCategory[];
+  categories?: TemplateCategory[]
   /** Filter by tags */
-  tags?: string[];
+  tags?: string[]
   /** Filter by author */
-  author?: string;
+  author?: string
   /** Include deprecated templates */
-  includeDeprecated?: boolean;
+  includeDeprecated?: boolean
   /** Sort order */
-  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'usage';
+  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'usage'
   /** Sort direction */
-  sortDirection?: 'asc' | 'desc';
+  sortDirection?: 'asc' | 'desc'
   /** Pagination */
-  limit?: number;
-  offset?: number;
+  limit?: number
+  offset?: number
 }
 
 /**
@@ -293,11 +293,11 @@ export interface ITemplateSearchQuery {
  */
 export interface ITemplateValidationResult {
   /** Whether template is valid */
-  isValid: boolean;
+  isValid: boolean
   /** Validation errors */
-  errors: ITemplateValidationError[];
+  errors: ITemplateValidationError[]
   /** Validation warnings */
-  warnings: ITemplateValidationWarning[];
+  warnings: ITemplateValidationWarning[]
 }
 
 /**
@@ -305,11 +305,11 @@ export interface ITemplateValidationResult {
  */
 export interface ITemplateValidationError {
   /** Error code */
-  code: string;
+  code: string
   /** Error message */
-  message: string;
+  message: string
   /** Field/path where error occurred */
-  field?: string;
+  field?: string
 }
 
 /**
@@ -317,11 +317,11 @@ export interface ITemplateValidationError {
  */
 export interface ITemplateValidationWarning {
   /** Warning code */
-  code: string;
+  code: string
   /** Warning message */
-  message: string;
+  message: string
   /** Field/path where warning occurred */
-  field?: string;
+  field?: string
 }
 
 /**
@@ -329,15 +329,15 @@ export interface ITemplateValidationWarning {
  */
 export interface ITemplateGeneratorConfig {
   /** Base template to extend */
-  baseTemplate?: string;
+  baseTemplate?: string
   /** Category for generated template */
-  category: TemplateCategory;
+  category: TemplateCategory
   /** Variables to include */
-  variables: ITemplateVariable[];
+  variables: ITemplateVariable[]
   /** Output format */
-  outputFormat: OutputFormat;
+  outputFormat: OutputFormat
   /** Additional options */
-  options?: Record<string, unknown>;
+  options?: Record<string, unknown>
 }
 
 /**
@@ -345,11 +345,11 @@ export interface ITemplateGeneratorConfig {
  */
 export interface ITemplateRenderContext {
   /** Variable values */
-  variables: Record<string, any>;
+  variables: Record<string, any>
   /** Rendering options */
-  options?: ITemplateRenderOptions;
+  options?: ITemplateRenderOptions
   /** User context */
-  userContext?: Record<string, any>;
+  userContext?: Record<string, any>
 }
 
 /**
@@ -357,13 +357,13 @@ export interface ITemplateRenderContext {
  */
 export interface ITemplateRenderOptions {
   /** Output format override */
-  outputFormat?: OutputFormat;
+  outputFormat?: OutputFormat
   /** Strict mode - fail on missing variables */
-  strict?: boolean;
+  strict?: boolean
   /** Include metadata in output */
-  includeMetadata?: boolean;
+  includeMetadata?: boolean
   /** Custom formatters */
-  formatters?: Record<string, (value: any) => string>;
+  formatters?: Record<string, (value: any) => string>
 }
 
 /**
@@ -371,11 +371,11 @@ export interface ITemplateRenderOptions {
  */
 export interface ITemplateRenderResult {
   /** Rendered output */
-  output: string;
+  output: string
   /** Output format used */
-  format: OutputFormat;
+  format: OutputFormat
   /** Metadata if requested */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any>
   /** Rendering warnings */
-  warnings?: string[];
+  warnings?: string[]
 }

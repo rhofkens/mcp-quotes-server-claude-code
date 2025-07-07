@@ -1,11 +1,11 @@
 /**
  * MCP Quotes Server - Motivational Quote Templates
- * 
+ *
  * Pre-defined templates for motivational quote requests
  */
 
-import type { IQuoteTemplate} from '../../../types/templates.js';
-import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js';
+import type { IQuoteTemplate } from '../../../types/templates.js'
+import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js'
 
 /**
  * Morning motivation template
@@ -20,9 +20,10 @@ export const morningMotivationTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Find {numberOfQuotes} powerful morning motivational quotes to inspire {audience} to {goal}.',
+  content:
+    'Find {numberOfQuotes} powerful morning motivational quotes to inspire {audience} to {goal}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -34,12 +35,12 @@ export const morningMotivationTemplate: IQuoteTemplate = {
       validation: {
         min: 1,
         max: 7,
-        errorMessage: 'Please select between 1 and 7 quotes for morning motivation'
+        errorMessage: 'Please select between 1 and 7 quotes for morning motivation',
       },
       uiHints: {
         inputType: 'number',
-        order: 1
-      }
+        order: 1,
+      },
     },
     {
       name: 'audience',
@@ -52,8 +53,8 @@ export const morningMotivationTemplate: IQuoteTemplate = {
       uiHints: {
         inputType: 'select',
         order: 2,
-        helpText: 'Choose the audience for more targeted quotes'
-      }
+        helpText: 'Choose the audience for more targeted quotes',
+      },
     },
     {
       name: 'goal',
@@ -62,41 +63,47 @@ export const morningMotivationTemplate: IQuoteTemplate = {
       type: VariableType.STRING,
       required: true,
       defaultValue: 'achieve their best',
-      examples: ['start their business', 'ace their exams', 'reach new heights', 'overcome challenges'],
+      examples: [
+        'start their business',
+        'ace their exams',
+        'reach new heights',
+        'overcome challenges',
+      ],
       uiHints: {
         inputType: 'text',
         placeholder: 'e.g., conquer their fears',
-        order: 3
-      }
-    }
+        order: 3,
+      },
+    },
   ],
   outputFormat: {
     format: OutputFormat.MARKDOWN,
     options: {
       title: '☀️ Morning Motivation',
-      includeHeader: true
-    }
+      includeHeader: true,
+    },
   },
   components: [
     {
       id: 'greeting',
       type: 'prefix',
-      content: '🌅 **Good Morning!**\n\nHere are your motivational quotes to power through the day:\n\n',
-      order: 1
+      content:
+        '🌅 **Good Morning!**\n\nHere are your motivational quotes to power through the day:\n\n',
+      order: 1,
     },
     {
       id: 'footer',
       type: 'suffix',
       content: '\n\n💪 **Remember**: Every morning is a new opportunity to be extraordinary!',
-      order: 2
-    }
+      order: 2,
+    },
   ],
   postProcessors: [
     {
       name: 'number-lines',
       type: 'transformer',
-      order: 1
-    }
+      order: 1,
+    },
   ],
   examples: [
     {
@@ -105,12 +112,13 @@ export const morningMotivationTemplate: IQuoteTemplate = {
       variables: {
         numberOfQuotes: 3,
         audience: 'entrepreneurs',
-        goal: 'build their dreams'
+        goal: 'build their dreams',
       },
-      expectedOutput: '🌅 **Good Morning!**\n\nHere are your motivational quotes to power through the day:\n\n1. "The secret of getting ahead is getting started." - Mark Twain\n2. "Your time is limited, dont waste it living someone elses life." - Steve Jobs\n3. "The only way to do great work is to love what you do." - Steve Jobs\n\n💪 **Remember**: Every morning is a new opportunity to be extraordinary!'
-    }
-  ]
-};
+      expectedOutput:
+        '🌅 **Good Morning!**\n\nHere are your motivational quotes to power through the day:\n\n1. "The secret of getting ahead is getting started." - Mark Twain\n2. "Your time is limited, dont waste it living someone elses life." - Steve Jobs\n3. "The only way to do great work is to love what you do." - Steve Jobs\n\n💪 **Remember**: Every morning is a new opportunity to be extraordinary!',
+    },
+  ],
+}
 
 /**
  * Fitness motivation template
@@ -125,9 +133,10 @@ export const fitnessMotivationTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Gather {numberOfQuotes} intense fitness motivation quotes for {workoutType} training, emphasizing {focus}.',
+  content:
+    'Gather {numberOfQuotes} intense fitness motivation quotes for {workoutType} training, emphasizing {focus}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -138,8 +147,8 @@ export const fitnessMotivationTemplate: IQuoteTemplate = {
       defaultValue: 5,
       validation: {
         min: 3,
-        max: 10
-      }
+        max: 10,
+      },
     },
     {
       name: 'workoutType',
@@ -151,8 +160,8 @@ export const fitnessMotivationTemplate: IQuoteTemplate = {
       defaultValue: 'general',
       uiHints: {
         inputType: 'select',
-        helpText: 'Select your workout focus'
-      }
+        helpText: 'Select your workout focus',
+      },
     },
     {
       name: 'focus',
@@ -161,32 +170,37 @@ export const fitnessMotivationTemplate: IQuoteTemplate = {
       type: VariableType.STRING,
       required: true,
       defaultValue: 'pushing beyond limits',
-      examples: ['discipline and consistency', 'mental toughness', 'achieving personal records', 'never giving up'],
+      examples: [
+        'discipline and consistency',
+        'mental toughness',
+        'achieving personal records',
+        'never giving up',
+      ],
       validation: {
         min: 3,
-        max: 50
-      }
-    }
+        max: 50,
+      },
+    },
   ],
   outputFormat: {
-    format: OutputFormat.TEXT
+    format: OutputFormat.TEXT,
   },
   components: [
     {
       id: 'header',
       type: 'prefix',
       content: '💪 FITNESS MOTIVATION 💪\n========================\n\n',
-      order: 1
+      order: 1,
     },
     {
       id: 'intense-mode',
       type: 'conditional',
       condition: 'workoutType === "HIIT" || workoutType === "crossfit"',
       content: '🔥 BEAST MODE ACTIVATED! 🔥\n\n',
-      order: 2
-    }
-  ]
-};
+      order: 2,
+    },
+  ],
+}
 
 /**
  * Goal achievement template
@@ -201,9 +215,10 @@ export const goalAchievementTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Collect {numberOfQuotes} motivational quotes about achieving {goalType} goals, specifically for someone who {currentSituation}.',
+  content:
+    'Collect {numberOfQuotes} motivational quotes about achieving {goalType} goals, specifically for someone who {currentSituation}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -214,8 +229,8 @@ export const goalAchievementTemplate: IQuoteTemplate = {
       defaultValue: 5,
       validation: {
         min: 1,
-        max: 10
-      }
+        max: 10,
+      },
     },
     {
       name: 'goalType',
@@ -224,7 +239,7 @@ export const goalAchievementTemplate: IQuoteTemplate = {
       type: VariableType.ENUM,
       required: true,
       enumValues: ['career', 'personal', 'financial', 'educational', 'creative', 'relationship'],
-      defaultValue: 'personal'
+      defaultValue: 'personal',
     },
     {
       name: 'currentSituation',
@@ -238,35 +253,35 @@ export const goalAchievementTemplate: IQuoteTemplate = {
         'needs to stay consistent',
         'is close to giving up',
         'has made good progress',
-        'is starting from scratch'
+        'is starting from scratch',
       ],
       validation: {
         min: 5,
-        max: 100
+        max: 100,
       },
       uiHints: {
         inputType: 'text',
         placeholder: 'e.g., is struggling with motivation',
-        helpText: 'This helps personalize the quote selection'
-      }
-    }
+        helpText: 'This helps personalize the quote selection',
+      },
+    },
   ],
   outputFormat: {
     format: OutputFormat.JSON,
     options: {
-      includeMetadata: true
-    }
+      includeMetadata: true,
+    },
   },
   postProcessors: [
     {
       name: 'add-metadata',
       type: 'enricher',
       options: {
-        position: 'bottom'
-      }
-    }
-  ]
-};
+        position: 'bottom',
+      },
+    },
+  ],
+}
 
 /**
  * Overcome challenges template
@@ -281,9 +296,10 @@ export const overcomeChallengesTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Find {numberOfQuotes} powerful quotes about overcoming {challengeType} that inspire {desiredOutcome}.',
+  content:
+    'Find {numberOfQuotes} powerful quotes about overcoming {challengeType} that inspire {desiredOutcome}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -294,8 +310,8 @@ export const overcomeChallengesTemplate: IQuoteTemplate = {
       defaultValue: 4,
       validation: {
         min: 2,
-        max: 8
-      }
+        max: 8,
+      },
     },
     {
       name: 'challengeType',
@@ -307,8 +323,8 @@ export const overcomeChallengesTemplate: IQuoteTemplate = {
       examples: ['failure', 'fear', 'self-doubt', 'setbacks', 'criticism', 'uncertainty'],
       uiHints: {
         inputType: 'text',
-        group: 'Challenge Details'
-      }
+        group: 'Challenge Details',
+      },
     },
     {
       name: 'desiredOutcome',
@@ -320,29 +336,29 @@ export const overcomeChallengesTemplate: IQuoteTemplate = {
       examples: ['courage to continue', 'inner strength', 'renewed confidence', 'breakthrough'],
       uiHints: {
         inputType: 'text',
-        group: 'Challenge Details'
-      }
-    }
+        group: 'Challenge Details',
+      },
+    },
   ],
   outputFormat: {
     format: OutputFormat.MARKDOWN,
-    alternativeFormats: [OutputFormat.TEXT, OutputFormat.HTML]
+    alternativeFormats: [OutputFormat.TEXT, OutputFormat.HTML],
   },
   components: [
     {
       id: 'intro',
       type: 'prefix',
       content: '## 🛡️ Strength Through Adversity\n\n',
-      order: 1
+      order: 1,
     },
     {
       id: 'outro',
       type: 'suffix',
       content: '\n\n---\n*Remember: The strongest steel is forged in the hottest fire.*',
-      order: 3
-    }
-  ]
-};
+      order: 3,
+    },
+  ],
+}
 
 /**
  * Export all motivational templates
@@ -351,5 +367,5 @@ export const motivationalTemplates: IQuoteTemplate[] = [
   morningMotivationTemplate,
   fitnessMotivationTemplate,
   goalAchievementTemplate,
-  overcomeChallengesTemplate
-];
+  overcomeChallengesTemplate,
+]

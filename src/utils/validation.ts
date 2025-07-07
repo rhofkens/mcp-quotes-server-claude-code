@@ -1,13 +1,13 @@
 /**
  * Validation Utilities
- * 
+ *
  * Input validation helpers and type guards for MCP requests
  */
 
-import type { ZodSchema } from 'zod';
-import { z, ZodError } from 'zod';
+import type { ZodSchema } from 'zod'
+import { z, ZodError } from 'zod'
 
-import { ValidationError, ErrorCode } from './errors.js';
+import { ValidationError, ErrorCode } from './errors.js'
 
 /**
  * Common validation schemas
@@ -17,32 +17,32 @@ export const CommonSchemas = {
    * Non-empty string validation
    */
   nonEmptyString: z.string().min(1, 'Value cannot be empty'),
-  
+
   /**
    * Positive integer validation
    */
   positiveInteger: z.number().int().positive(),
-  
+
   /**
    * URL validation
    */
   url: z.string().url('Invalid URL format'),
-  
+
   /**
    * Email validation
    */
   email: z.string().email('Invalid email format'),
-  
+
   /**
    * UUID validation
    */
   uuid: z.string().uuid('Invalid UUID format'),
-  
+
   /**
    * ISO date string validation
    */
   isoDate: z.string().datetime('Invalid ISO date format'),
-};
+}
 
 /**
  * MCP request validation schemas
@@ -57,7 +57,7 @@ export const MCPSchemas = {
     id: z.union([z.string(), z.number()]),
     params: z.unknown().optional(),
   }),
-  
+
   /**
    * Tool call request
    */
@@ -70,7 +70,7 @@ export const MCPSchemas = {
       arguments: z.record(z.unknown()).optional(),
     }),
   }),
-  
+
   /**
    * Resource read request
    */
@@ -82,7 +82,7 @@ export const MCPSchemas = {
       uri: z.string().min(1),
     }),
   }),
-};
+}
 
 /**
  * Quote-specific validation schemas
@@ -93,13 +93,14 @@ export const QuoteSchemas = {
    */
   getQuotesParams: z.object({
     person: CommonSchemas.nonEmptyString,
-    numberOfQuotes: z.number()
+    numberOfQuotes: z
+      .number()
       .int()
       .min(1, 'Number of quotes must be at least 1')
       .max(10, 'Number of quotes cannot exceed 10'),
     topic: z.string().optional(),
   }),
-  
+
   /**
    * Quote object
    */
@@ -110,38 +111,28 @@ export const QuoteSchemas = {
     date: z.string().optional(),
     context: z.string().optional(),
   }),
-};
+}
 
 /**
  * Validate data against a schema
  * @throws {ValidationError} If validation fails
  */
-export function validate<T>(
-  schema: ZodSchema<T>,
-  data: unknown,
-  fieldName?: string
-): T {
+export function validate<T>(schema: ZodSchema<T>, data: unknown, fieldName?: string): T {
   try {
-    return schema.parse(data);
+    return schema.parse(data)
   } catch (error) {
     if (error instanceof ZodError) {
-      const issues = error.errors.map(issue => {
-        const path = issue.path.join('.');
-        return `${path}: ${issue.message}`;
-      }).join('; ');
-      
-      throw new ValidationError(
-        `Validation failed: ${issues}`,
-        fieldName,
-        { issues: error.errors }
-      );
+      const issues = error.errors
+        .map((issue) => {
+          const path = issue.path.join('.')
+          return `${path}: ${issue.message}`
+        })
+        .join('; ')
+
+      throw new ValidationError(`Validation failed: ${issues}`, fieldName, { issues: error.errors })
     }
-    
-    throw new ValidationError(
-      'Unknown validation error',
-      fieldName,
-      { originalError: error }
-    );
+
+    throw new ValidationError('Unknown validation error', fieldName, { originalError: error })
   }
 }
 
@@ -153,33 +144,29 @@ export function safeValidate<T>(
   data: unknown
 ): { success: true; data: T } | { success: false; error: ValidationError } {
   try {
-    const result = schema.parse(data);
-    return { success: true, data: result };
+    const result = schema.parse(data)
+    return { success: true, data: result }
   } catch (error) {
     if (error instanceof ZodError) {
-      const issues = error.errors.map(issue => {
-        const path = issue.path.join('.');
-        return `${path}: ${issue.message}`;
-      }).join('; ');
-      
+      const issues = error.errors
+        .map((issue) => {
+          const path = issue.path.join('.')
+          return `${path}: ${issue.message}`
+        })
+        .join('; ')
+
       return {
         success: false,
-        error: new ValidationError(
-          `Validation failed: ${issues}`,
-          undefined,
-          { issues: error.errors }
-        ),
-      };
+        error: new ValidationError(`Validation failed: ${issues}`, undefined, {
+          issues: error.errors,
+        }),
+      }
     }
-    
+
     return {
       success: false,
-      error: new ValidationError(
-        'Unknown validation error',
-        undefined,
-        { originalError: error }
-      ),
-    };
+      error: new ValidationError('Unknown validation error', undefined, { originalError: error }),
+    }
   }
 }
 
@@ -187,21 +174,25 @@ export function safeValidate<T>(
  * Type guard for MCP request
  */
 export function isMCPRequest(data: unknown): data is z.infer<typeof MCPSchemas.baseRequest> {
-  return MCPSchemas.baseRequest.safeParse(data).success;
+  return MCPSchemas.baseRequest.safeParse(data).success
 }
 
 /**
  * Type guard for tool call request
  */
-export function isToolCallRequest(data: unknown): data is z.infer<typeof MCPSchemas.toolCallRequest> {
-  return MCPSchemas.toolCallRequest.safeParse(data).success;
+export function isToolCallRequest(
+  data: unknown
+): data is z.infer<typeof MCPSchemas.toolCallRequest> {
+  return MCPSchemas.toolCallRequest.safeParse(data).success
 }
 
 /**
  * Type guard for resource read request
  */
-export function isResourceReadRequest(data: unknown): data is z.infer<typeof MCPSchemas.resourceReadRequest> {
-  return MCPSchemas.resourceReadRequest.safeParse(data).success;
+export function isResourceReadRequest(
+  data: unknown
+): data is z.infer<typeof MCPSchemas.resourceReadRequest> {
+  return MCPSchemas.resourceReadRequest.safeParse(data).success
 }
 
 /**
@@ -209,13 +200,11 @@ export function isResourceReadRequest(data: unknown): data is z.infer<typeof MCP
  */
 export function validateEnvVar(name: string, value: string | undefined): string {
   if (!value || value.trim() === '') {
-    throw new ValidationError(
-      `Required environment variable ${name} is not set`,
-      name,
-      { code: ErrorCode.MISSING_ENV_VAR }
-    );
+    throw new ValidationError(`Required environment variable ${name} is not set`, name, {
+      code: ErrorCode.MISSING_ENV_VAR,
+    })
   }
-  return value;
+  return value
 }
 
 /**
@@ -227,9 +216,9 @@ export function validateOptionalEnvVar(
   defaultValue: string
 ): string {
   if (!value || value.trim() === '') {
-    return defaultValue;
+    return defaultValue
   }
-  return value;
+  return value
 }
 
 /**
@@ -243,35 +232,31 @@ export function parseIntEnvVar(
   max?: number
 ): number {
   if (!value) {
-    return defaultValue;
+    return defaultValue
   }
-  
-  const parsed = parseInt(value, 10);
+
+  const parsed = parseInt(value, 10)
   if (isNaN(parsed)) {
-    throw new ValidationError(
-      `Environment variable ${name} must be a valid integer`,
-      name,
-      { value }
-    );
+    throw new ValidationError(`Environment variable ${name} must be a valid integer`, name, {
+      value,
+    })
   }
-  
+
   if (min !== undefined && parsed < min) {
-    throw new ValidationError(
-      `Environment variable ${name} must be at least ${min}`,
-      name,
-      { value, min }
-    );
+    throw new ValidationError(`Environment variable ${name} must be at least ${min}`, name, {
+      value,
+      min,
+    })
   }
-  
+
   if (max !== undefined && parsed > max) {
-    throw new ValidationError(
-      `Environment variable ${name} must be at most ${max}`,
-      name,
-      { value, max }
-    );
+    throw new ValidationError(`Environment variable ${name} must be at most ${max}`, name, {
+      value,
+      max,
+    })
   }
-  
-  return parsed;
+
+  return parsed
 }
 
 /**
@@ -283,23 +268,23 @@ export function parseBooleanEnvVar(
   defaultValue: boolean
 ): boolean {
   if (!value) {
-    return defaultValue;
+    return defaultValue
   }
-  
-  const lowercased = value.toLowerCase();
+
+  const lowercased = value.toLowerCase()
   if (lowercased === 'true' || lowercased === '1' || lowercased === 'yes') {
-    return true;
+    return true
   }
-  
+
   if (lowercased === 'false' || lowercased === '0' || lowercased === 'no') {
-    return false;
+    return false
   }
-  
+
   throw new ValidationError(
     `Environment variable ${name} must be a boolean (true/false, 1/0, yes/no)`,
     name,
     { value }
-  );
+  )
 }
 
 /**
@@ -307,8 +292,8 @@ export function parseBooleanEnvVar(
  */
 export function createValidator<T>(schema: ZodSchema<T>) {
   return (params: unknown): T => {
-    return validate(schema, params, 'params');
-  };
+    return validate(schema, params, 'params')
+  }
 }
 
 /**
@@ -321,19 +306,17 @@ export function validateArrayBounds<T>(
   maxLength?: number
 ): void {
   if (minLength !== undefined && array.length < minLength) {
-    throw new ValidationError(
-      `Array must have at least ${minLength} items`,
-      fieldName,
-      { actualLength: array.length, minLength }
-    );
+    throw new ValidationError(`Array must have at least ${minLength} items`, fieldName, {
+      actualLength: array.length,
+      minLength,
+    })
   }
-  
+
   if (maxLength !== undefined && array.length > maxLength) {
-    throw new ValidationError(
-      `Array cannot have more than ${maxLength} items`,
-      fieldName,
-      { actualLength: array.length, maxLength }
-    );
+    throw new ValidationError(`Array cannot have more than ${maxLength} items`, fieldName, {
+      actualLength: array.length,
+      maxLength,
+    })
   }
 }
 
@@ -347,19 +330,17 @@ export function validateStringBounds(
   maxLength?: number
 ): void {
   if (minLength !== undefined && value.length < minLength) {
-    throw new ValidationError(
-      `String must have at least ${minLength} characters`,
-      fieldName,
-      { actualLength: value.length, minLength }
-    );
+    throw new ValidationError(`String must have at least ${minLength} characters`, fieldName, {
+      actualLength: value.length,
+      minLength,
+    })
   }
-  
+
   if (maxLength !== undefined && value.length > maxLength) {
-    throw new ValidationError(
-      `String cannot have more than ${maxLength} characters`,
-      fieldName,
-      { actualLength: value.length, maxLength }
-    );
+    throw new ValidationError(`String cannot have more than ${maxLength} characters`, fieldName, {
+      actualLength: value.length,
+      maxLength,
+    })
   }
 }
 
@@ -367,14 +348,14 @@ export function validateStringBounds(
  * Sanitize string input
  */
 export function sanitizeString(input: string): string {
-  return input.trim().replace(/[<>]/g, '');
+  return input.trim().replace(/[<>]/g, '')
 }
 
 /**
  * Validate and sanitize search query
  */
 export function validateSearchQuery(query: string, fieldName = 'query'): string {
-  const sanitized = sanitizeString(query);
-  validateStringBounds(sanitized, fieldName, 1, 200);
-  return sanitized;
+  const sanitized = sanitizeString(query)
+  validateStringBounds(sanitized, fieldName, 1, 200)
+  return sanitized
 }

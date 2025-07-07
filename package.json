@@ -1,6 +1,6 @@
 {
   "name": "mcp-quotes-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Model Context Protocol (MCP) server for managing and serving quotes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npx --no-install tsc -p tsconfig.build.json",
     "build:clean": "rm -rf dist && npm run build",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
@@ -24,7 +24,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npx --no-install tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm run format:check",
     "prepublishOnly": "npm run build",
     "version": "npm run format && git add -A src",
@@ -70,7 +70,7 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "tsx": "^4.7.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.3"
   },
   "files": [
     "dist/",

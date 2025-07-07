@@ -1,6 +1,6 @@
 /**
  * MCP Quotes Server - Template Repository
- * 
+ *
  * In-memory repository for managing quote templates
  */
 
@@ -8,27 +8,23 @@ import type {
   IQuoteTemplate,
   ITemplateRepository,
   ITemplateSearchQuery,
-  ITemplateVersion
-} from '../../types/templates.js';
-import {
-  TemplateCategory,
-  VariableType,
-  OutputFormat
-} from '../../types/templates.js';
-import { logger } from '../../utils/logger.js';
+  ITemplateVersion,
+} from '../../types/templates.js'
+import { TemplateCategory, VariableType, OutputFormat } from '../../types/templates.js'
+import { logger } from '../../utils/logger.js'
 
-import { TemplateValidator } from './validators/templateValidator.js';
+import { TemplateValidator } from './validators/templateValidator.js'
 
 /**
  * In-memory template repository implementation
  */
 export class InMemoryTemplateRepository implements ITemplateRepository {
-  private templates: Map<string, IQuoteTemplate> = new Map();
-  private versions: Map<string, ITemplateVersion[]> = new Map();
+  private templates: Map<string, IQuoteTemplate> = new Map()
+  private versions: Map<string, ITemplateVersion[]> = new Map()
 
   constructor() {
     // Initialize with default templates
-    this.initializeDefaultTemplates();
+    this.initializeDefaultTemplates()
   }
 
   /**
@@ -36,105 +32,103 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
    */
   async getTemplate(id: string, version?: string): Promise<IQuoteTemplate | null> {
     if (version) {
-      const versionHistory = this.versions.get(id);
+      const versionHistory = this.versions.get(id)
       if (versionHistory) {
-        const templateVersion = versionHistory.find(v => v.version === version);
-        return templateVersion?.template || null;
+        const templateVersion = versionHistory.find((v) => v.version === version)
+        return templateVersion?.template || null
       }
-      return null;
+      return null
     }
 
-    return this.templates.get(id) || null;
+    return this.templates.get(id) || null
   }
 
   /**
    * List templates by category
    */
   async listByCategory(category: TemplateCategory): Promise<IQuoteTemplate[]> {
-    const templates: IQuoteTemplate[] = [];
-    
+    const templates: IQuoteTemplate[] = []
+
     for (const template of this.templates.values()) {
       if (template.metadata.category === category && !template.metadata.deprecated) {
-        templates.push(template);
+        templates.push(template)
       }
     }
 
-    return templates.sort((a, b) => 
-      a.metadata.name.localeCompare(b.metadata.name)
-    );
+    return templates.sort((a, b) => a.metadata.name.localeCompare(b.metadata.name))
   }
 
   /**
    * Search templates
    */
   async searchTemplates(query: ITemplateSearchQuery): Promise<IQuoteTemplate[]> {
-    let templates = Array.from(this.templates.values());
+    let templates = Array.from(this.templates.values())
 
     // Filter by text search
     if (query.text) {
-      const searchText = query.text.toLowerCase();
-      templates = templates.filter(t => 
-        t.metadata.name.toLowerCase().includes(searchText) ||
-        t.metadata.description.toLowerCase().includes(searchText) ||
-        t.metadata.tags.some((tag: string) => tag.toLowerCase().includes(searchText))
-      );
+      const searchText = query.text.toLowerCase()
+      templates = templates.filter(
+        (t) =>
+          t.metadata.name.toLowerCase().includes(searchText) ||
+          t.metadata.description.toLowerCase().includes(searchText) ||
+          t.metadata.tags.some((tag: string) => tag.toLowerCase().includes(searchText))
+      )
     }
 
     // Filter by categories
     if (query.categories && query.categories.length > 0) {
-      templates = templates.filter(t => 
-        query.categories!.includes(t.metadata.category)
-      );
+      templates = templates.filter((t) => query.categories!.includes(t.metadata.category))
     }
 
     // Filter by tags
     if (query.tags && query.tags.length > 0) {
-      templates = templates.filter(t => 
+      templates = templates.filter((t) =>
         query.tags!.some((tag: string) => t.metadata.tags.includes(tag))
-      );
+      )
     }
 
     // Filter by author
     if (query.author) {
-      templates = templates.filter(t => 
+      templates = templates.filter((t) =>
         t.metadata.author.toLowerCase().includes(query.author!.toLowerCase())
-      );
+      )
     }
 
     // Filter deprecated
     if (!query.includeDeprecated) {
-      templates = templates.filter(t => !t.metadata.deprecated);
+      templates = templates.filter((t) => !t.metadata.deprecated)
     }
 
     // Sort
     if (query.sortBy) {
       templates.sort((a, b) => {
-        let comparison = 0;
-        
+        let comparison = 0
+
         switch (query.sortBy) {
           case 'name':
-            comparison = a.metadata.name.localeCompare(b.metadata.name);
-            break;
+            comparison = a.metadata.name.localeCompare(b.metadata.name)
+            break
           case 'createdAt':
-            comparison = a.metadata.createdAt.getTime() - b.metadata.createdAt.getTime();
-            break;
+            comparison = a.metadata.createdAt.getTime() - b.metadata.createdAt.getTime()
+            break
           case 'updatedAt':
-            comparison = a.metadata.updatedAt.getTime() - b.metadata.updatedAt.getTime();
-            break;
+            comparison = a.metadata.updatedAt.getTime() - b.metadata.updatedAt.getTime()
+            break
           case 'usage':
-            comparison = (a.metadata.usageStats?.totalUses || 0) - (b.metadata.usageStats?.totalUses || 0);
-            break;
+            comparison =
+              (a.metadata.usageStats?.totalUses || 0) - (b.metadata.usageStats?.totalUses || 0)
+            break
         }
 
-        return query.sortDirection === 'desc' ? -comparison : comparison;
-      });
+        return query.sortDirection === 'desc' ? -comparison : comparison
+      })
     }
 
     // Pagination
-    const offset = query.offset || 0;
-    const limit = query.limit || templates.length;
-    
-    return templates.slice(offset, offset + limit);
+    const offset = query.offset || 0
+    const limit = query.limit || templates.length
+
+    return templates.slice(offset, offset + limit)
   }
 
   /**
@@ -142,26 +136,28 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
    */
   async saveTemplate(template: IQuoteTemplate): Promise<void> {
     // Validate template
-    const validation = TemplateValidator.validate(template);
+    const validation = TemplateValidator.validate(template)
     if (!validation.isValid) {
-      throw new Error(`Template validation failed: ${validation.errors.map((e: any) => e.message).join(', ')}`);
+      throw new Error(
+        `Template validation failed: ${validation.errors.map((e: any) => e.message).join(', ')}`
+      )
     }
 
-    const existingTemplate = this.templates.get(template.metadata.id);
-    
+    const existingTemplate = this.templates.get(template.metadata.id)
+
     // Update timestamp
-    template.metadata.updatedAt = new Date();
+    template.metadata.updatedAt = new Date()
     if (!existingTemplate) {
-      template.metadata.createdAt = new Date();
+      template.metadata.createdAt = new Date()
     }
 
     // Save version history
     if (existingTemplate && existingTemplate.metadata.version !== template.metadata.version) {
-      const versionHistory = this.versions.get(template.metadata.id) || [];
-      
+      const versionHistory = this.versions.get(template.metadata.id) || []
+
       // Mark old version as not current
-      versionHistory.forEach(v => v.isCurrent = false);
-      
+      versionHistory.forEach((v) => (v.isCurrent = false))
+
       // Add new version
       versionHistory.push({
         version: template.metadata.version,
@@ -169,27 +165,27 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
         changeDescription: `Updated from version ${existingTemplate.metadata.version}`,
         author: template.metadata.author,
         date: new Date(),
-        isCurrent: true
-      });
-      
-      this.versions.set(template.metadata.id, versionHistory);
+        isCurrent: true,
+      })
+
+      this.versions.set(template.metadata.id, versionHistory)
     }
 
     // Save template
-    this.templates.set(template.metadata.id, template);
-    
+    this.templates.set(template.metadata.id, template)
+
     logger.info('Template saved', {
       id: template.metadata.id,
       name: template.metadata.name,
-      version: template.metadata.version
-    });
+      version: template.metadata.version,
+    })
   }
 
   /**
    * Get version history
    */
   async getVersionHistory(id: string): Promise<ITemplateVersion[]> {
-    return this.versions.get(id) || [];
+    return this.versions.get(id) || []
   }
 
   /**
@@ -207,7 +203,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
           author: 'MCP Quotes Server',
           createdAt: new Date(),
           updatedAt: new Date(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
         content: 'Find {numberOfQuotes} quotes from {person}.',
         variables: [
@@ -217,7 +213,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             description: 'The person whose quotes you want to retrieve',
             type: VariableType.STRING,
             required: true,
-            examples: ['Albert Einstein', 'Maya Angelou', 'Steve Jobs']
+            examples: ['Albert Einstein', 'Maya Angelou', 'Steve Jobs'],
           },
           {
             name: 'numberOfQuotes',
@@ -229,13 +225,13 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             validation: {
               min: 1,
               max: 10,
-              errorMessage: 'Number of quotes must be between 1 and 10'
-            }
-          }
+              errorMessage: 'Number of quotes must be between 1 and 10',
+            },
+          },
         ],
         outputFormat: {
-          format: OutputFormat.TEXT
-        }
+          format: OutputFormat.TEXT,
+        },
       },
       {
         metadata: {
@@ -247,7 +243,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
           author: 'MCP Quotes Server',
           createdAt: new Date(),
           updatedAt: new Date(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
         content: 'Find {numberOfQuotes} quotes from {person} about {topic}.',
         variables: [
@@ -257,7 +253,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             description: 'The person whose quotes you want to retrieve',
             type: VariableType.STRING,
             required: true,
-            examples: ['Albert Einstein', 'Maya Angelou', 'Steve Jobs']
+            examples: ['Albert Einstein', 'Maya Angelou', 'Steve Jobs'],
           },
           {
             name: 'numberOfQuotes',
@@ -268,8 +264,8 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             defaultValue: 3,
             validation: {
               min: 1,
-              max: 10
-            }
+              max: 10,
+            },
           },
           {
             name: 'topic',
@@ -277,12 +273,12 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             description: 'Topic to filter quotes by',
             type: VariableType.STRING,
             required: true,
-            examples: ['success', 'innovation', 'life', 'education']
-          }
+            examples: ['success', 'innovation', 'life', 'education'],
+          },
         ],
         outputFormat: {
-          format: OutputFormat.TEXT
-        }
+          format: OutputFormat.TEXT,
+        },
       },
       {
         metadata: {
@@ -294,9 +290,10 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
           author: 'MCP Quotes Server',
           createdAt: new Date(),
           updatedAt: new Date(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        content: 'Generate a collection of {numberOfQuotes} motivational quotes for {dayOfWeek} focusing on {theme}.',
+        content:
+          'Generate a collection of {numberOfQuotes} motivational quotes for {dayOfWeek} focusing on {theme}.',
         variables: [
           {
             name: 'numberOfQuotes',
@@ -307,8 +304,8 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             defaultValue: 5,
             validation: {
               min: 3,
-              max: 10
-            }
+              max: 10,
+            },
           },
           {
             name: 'dayOfWeek',
@@ -316,8 +313,16 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             description: 'The day these quotes are for',
             type: VariableType.ENUM,
             required: true,
-            enumValues: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            defaultValue: 'Monday'
+            enumValues: [
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday',
+              'Sunday',
+            ],
+            defaultValue: 'Monday',
           },
           {
             name: 'theme',
@@ -326,24 +331,24 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             type: VariableType.STRING,
             required: true,
             examples: ['productivity', 'perseverance', 'growth', 'leadership'],
-            defaultValue: 'productivity'
-          }
+            defaultValue: 'productivity',
+          },
         ],
         outputFormat: {
           format: OutputFormat.MARKDOWN,
           options: {
             title: 'Daily Motivational Quotes',
-            includeHeader: true
-          }
+            includeHeader: true,
+          },
         },
         components: [
           {
             id: 'header',
             type: 'prefix',
             content: '## Motivational Quotes for {dayOfWeek}\n\nTheme: **{theme}**\n\n',
-            order: 1
-          }
-        ]
+            order: 1,
+          },
+        ],
       },
       {
         metadata: {
@@ -355,9 +360,10 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
           author: 'MCP Quotes Server',
           createdAt: new Date(),
           updatedAt: new Date(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        content: 'Compile {numberOfQuotes} {style} quotes about {aspect} from successful business leaders.',
+        content:
+          'Compile {numberOfQuotes} {style} quotes about {aspect} from successful business leaders.',
         variables: [
           {
             name: 'numberOfQuotes',
@@ -368,8 +374,8 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             defaultValue: 5,
             validation: {
               min: 1,
-              max: 15
-            }
+              max: 15,
+            },
           },
           {
             name: 'style',
@@ -378,7 +384,7 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             type: VariableType.ENUM,
             required: true,
             enumValues: ['inspirational', 'practical', 'strategic', 'motivational'],
-            defaultValue: 'inspirational'
+            defaultValue: 'inspirational',
           },
           {
             name: 'aspect',
@@ -387,38 +393,38 @@ export class InMemoryTemplateRepository implements ITemplateRepository {
             type: VariableType.STRING,
             required: true,
             examples: ['innovation', 'team building', 'decision making', 'entrepreneurship'],
-            defaultValue: 'leadership'
-          }
+            defaultValue: 'leadership',
+          },
         ],
         outputFormat: {
           format: OutputFormat.JSON,
           options: {
-            includeMetadata: true
-          }
+            includeMetadata: true,
+          },
         },
         postProcessors: [
           {
             name: 'add-attribution',
             type: 'enricher',
             options: {
-              text: 'Business Leadership Quote Collection'
+              text: 'Business Leadership Quote Collection',
             },
-            order: 1
-          }
-        ]
-      }
-    ];
+            order: 1,
+          },
+        ],
+      },
+    ]
 
     // Save all default templates
-    defaultTemplates.forEach(template => {
-      this.templates.set(template.metadata.id, template);
-    });
+    defaultTemplates.forEach((template) => {
+      this.templates.set(template.metadata.id, template)
+    })
 
     logger.info('Default templates initialized', {
-      count: defaultTemplates.length
-    });
+      count: defaultTemplates.length,
+    })
   }
 }
 
 // Export singleton instance
-export const templateRepository = new InMemoryTemplateRepository();
+export const templateRepository = new InMemoryTemplateRepository()

@@ -43,7 +43,7 @@ export default {
   },
   coverageReporters: ['text', 'lcov', 'html'],
   // Removed deprecated globals configuration
-  
+
   // CI environment optimizations
   testTimeout: process.env.CI ? 30000 : 10000, // Longer timeout for CI
   clearMocks: true,
@@ -51,14 +51,14 @@ export default {
   detectOpenHandles: process.env.CI === 'true', // Help debug hanging tests in CI
   forceExit: process.env.CI === 'true', // Force exit in CI to prevent hanging
   maxWorkers: process.env.CI ? 2 : '50%', // Limit workers in CI for stability
-  
+
   // Additional CI settings
   bail: process.env.CI ? 1 : 0, // Stop on first test failure in CI
   verbose: process.env.CI === 'true', // More verbose output in CI
-  
+
   // Ensure proper module handling
   testEnvironmentOptions: {
     // Ensure NODE_OPTIONS are properly set for ESM
     customExportConditions: ['node', 'node-addons'],
   },
-};
+}

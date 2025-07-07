@@ -1,11 +1,11 @@
 /**
  * MCP Quotes Server - Philosophical Quote Templates
- * 
+ *
  * Pre-defined templates for philosophical quote requests
  */
 
-import type { IQuoteTemplate} from '../../../types/templates.js';
-import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js';
+import type { IQuoteTemplate } from '../../../types/templates.js'
+import { TemplateCategory, VariableType, OutputFormat } from '../../../types/templates.js'
 
 /**
  * Ancient wisdom template
@@ -20,9 +20,10 @@ export const ancientWisdomTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Discover {numberOfQuotes} profound quotes from {tradition} philosophers about {concept}.',
+  content:
+    'Discover {numberOfQuotes} profound quotes from {tradition} philosophers about {concept}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -33,8 +34,8 @@ export const ancientWisdomTemplate: IQuoteTemplate = {
       defaultValue: 4,
       validation: {
         min: 1,
-        max: 10
-      }
+        max: 10,
+      },
     },
     {
       name: 'tradition',
@@ -46,8 +47,8 @@ export const ancientWisdomTemplate: IQuoteTemplate = {
       defaultValue: 'Greek',
       uiHints: {
         inputType: 'select',
-        helpText: 'Choose a philosophical tradition'
-      }
+        helpText: 'Choose a philosophical tradition',
+      },
     },
     {
       name: 'concept',
@@ -62,20 +63,20 @@ export const ancientWisdomTemplate: IQuoteTemplate = {
         'knowledge and truth',
         'happiness and fulfillment',
         'death and mortality',
-        'justice and society'
+        'justice and society',
       ],
       validation: {
         min: 3,
-        max: 50
-      }
-    }
+        max: 50,
+      },
+    },
   ],
   outputFormat: {
     format: OutputFormat.MARKDOWN,
     options: {
       title: 'Ancient Wisdom',
-      includeHeader: true
-    }
+      includeHeader: true,
+    },
   },
   components: [
     {
@@ -83,8 +84,8 @@ export const ancientWisdomTemplate: IQuoteTemplate = {
       type: 'conditional',
       condition: 'tradition !== "Any"',
       content: '🏛️ **{tradition} Philosophical Wisdom**\n\n',
-      order: 1
-    }
+      order: 1,
+    },
   ],
   examples: [
     {
@@ -92,12 +93,13 @@ export const ancientWisdomTemplate: IQuoteTemplate = {
       variables: {
         numberOfQuotes: 3,
         tradition: 'Greek',
-        concept: 'virtue and ethics'
+        concept: 'virtue and ethics',
       },
-      expectedOutput: '# Ancient Wisdom\n\n🏛️ **Greek Philosophical Wisdom**\n\n1. "Excellence is not a gift, but a skill that takes practice." - Aristotle\n2. "The unexamined life is not worth living." - Socrates\n3. "Wealth consists not in having great possessions, but in having few wants." - Epictetus'
-    }
-  ]
-};
+      expectedOutput:
+        '# Ancient Wisdom\n\n🏛️ **Greek Philosophical Wisdom**\n\n1. "Excellence is not a gift, but a skill that takes practice." - Aristotle\n2. "The unexamined life is not worth living." - Socrates\n3. "Wealth consists not in having great possessions, but in having few wants." - Epictetus',
+    },
+  ],
+}
 
 /**
  * Existential philosophy template
@@ -112,9 +114,10 @@ export const existentialPhilosophyTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Explore {numberOfQuotes} existential quotes about {theme} that challenge our understanding of {aspect}.',
+  content:
+    'Explore {numberOfQuotes} existential quotes about {theme} that challenge our understanding of {aspect}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -125,8 +128,8 @@ export const existentialPhilosophyTemplate: IQuoteTemplate = {
       defaultValue: 5,
       validation: {
         min: 2,
-        max: 10
-      }
+        max: 10,
+      },
     },
     {
       name: 'theme',
@@ -141,9 +144,9 @@ export const existentialPhilosophyTemplate: IQuoteTemplate = {
         'anxiety and dread',
         'meaning and purpose',
         'death and finitude',
-        'alienation'
+        'alienation',
       ],
-      defaultValue: 'meaning and purpose'
+      defaultValue: 'meaning and purpose',
     },
     {
       name: 'aspect',
@@ -155,28 +158,28 @@ export const existentialPhilosophyTemplate: IQuoteTemplate = {
       examples: ['personal identity', 'social relationships', 'moral choices', 'daily life'],
       validation: {
         min: 3,
-        max: 40
-      }
-    }
+        max: 40,
+      },
+    },
   ],
   outputFormat: {
-    format: OutputFormat.TEXT
+    format: OutputFormat.TEXT,
   },
   components: [
     {
       id: 'header',
       type: 'prefix',
       content: '=== EXISTENTIAL REFLECTIONS ===\n\n',
-      order: 1
+      order: 1,
     },
     {
       id: 'footer',
       type: 'suffix',
       content: '\n\n"Man is condemned to be free." - Jean-Paul Sartre',
-      order: 2
-    }
-  ]
-};
+      order: 2,
+    },
+  ],
+}
 
 /**
  * Modern philosophy template
@@ -191,9 +194,10 @@ export const modernPhilosophyTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Gather {numberOfQuotes} modern philosophical insights about {topic} from {era} thinkers.',
+  content:
+    'Gather {numberOfQuotes} modern philosophical insights about {topic} from {era} thinkers.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -204,8 +208,8 @@ export const modernPhilosophyTemplate: IQuoteTemplate = {
       defaultValue: 4,
       validation: {
         min: 1,
-        max: 8
-      }
+        max: 8,
+      },
     },
     {
       name: 'topic',
@@ -220,12 +224,12 @@ export const modernPhilosophyTemplate: IQuoteTemplate = {
         'social media and identity',
         'global justice',
         'consciousness and neuroscience',
-        'postmodern reality'
+        'postmodern reality',
       ],
       uiHints: {
         inputType: 'text',
-        placeholder: 'e.g., digital age ethics'
-      }
+        placeholder: 'e.g., digital age ethics',
+      },
     },
     {
       name: 'era',
@@ -234,25 +238,25 @@ export const modernPhilosophyTemplate: IQuoteTemplate = {
       type: VariableType.ENUM,
       required: true,
       enumValues: ['20th century', '21st century', 'contemporary', 'post-modern'],
-      defaultValue: 'contemporary'
-    }
+      defaultValue: 'contemporary',
+    },
   ],
   outputFormat: {
     format: OutputFormat.JSON,
     options: {
-      includeTimestamp: true
-    }
+      includeTimestamp: true,
+    },
   },
   postProcessors: [
     {
       name: 'add-attribution',
       type: 'enricher',
       options: {
-        text: 'Modern Philosophy Collection'
-      }
-    }
-  ]
-};
+        text: 'Modern Philosophy Collection',
+      },
+    },
+  ],
+}
 
 /**
  * Stoic philosophy template
@@ -267,7 +271,7 @@ export const stoicPhilosophyTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
   content: 'Find {numberOfQuotes} Stoic quotes about {virtue} to help with {situation}.',
   variables: [
@@ -280,8 +284,8 @@ export const stoicPhilosophyTemplate: IQuoteTemplate = {
       defaultValue: 5,
       validation: {
         min: 1,
-        max: 10
-      }
+        max: 10,
+      },
     },
     {
       name: 'virtue',
@@ -292,8 +296,8 @@ export const stoicPhilosophyTemplate: IQuoteTemplate = {
       enumValues: ['wisdom', 'courage', 'justice', 'temperance', 'all virtues'],
       defaultValue: 'wisdom',
       uiHints: {
-        helpText: 'The four cardinal Stoic virtues'
-      }
+        helpText: 'The four cardinal Stoic virtues',
+      },
     },
     {
       name: 'situation',
@@ -307,25 +311,26 @@ export const stoicPhilosophyTemplate: IQuoteTemplate = {
         'managing emotions',
         'making difficult decisions',
         'accepting what cannot be changed',
-        'building character'
+        'building character',
       ],
       validation: {
         min: 5,
-        max: 60
-      }
-    }
+        max: 60,
+      },
+    },
   ],
   outputFormat: {
     format: OutputFormat.MARKDOWN,
-    alternativeFormats: [OutputFormat.TEXT]
+    alternativeFormats: [OutputFormat.TEXT],
   },
   components: [
     {
       id: 'stoic-intro',
       type: 'prefix',
-      content: '## 🏛️ Stoic Wisdom\n\n*"You have power over your mind - not outside events. Realize this, and you will find strength."* - Marcus Aurelius\n\n---\n\n',
-      order: 1
-    }
+      content:
+        '## 🏛️ Stoic Wisdom\n\n*"You have power over your mind - not outside events. Realize this, and you will find strength."* - Marcus Aurelius\n\n---\n\n',
+      order: 1,
+    },
   ],
   examples: [
     {
@@ -333,12 +338,13 @@ export const stoicPhilosophyTemplate: IQuoteTemplate = {
       variables: {
         numberOfQuotes: 3,
         virtue: 'courage',
-        situation: 'facing a major life setback'
+        situation: 'facing a major life setback',
       },
-      expectedOutput: '## 🏛️ Stoic Wisdom\n\n*"You have power over your mind - not outside events. Realize this, and you will find strength."* - Marcus Aurelius\n\n---\n\n1. "The impediment to action advances action. What stands in the way becomes the way." - Marcus Aurelius\n2. "Every new beginning comes from some other beginning’s end." - Seneca\n3. "How does it help to make troubles heavier by bemoaning them?" - Seneca'
-    }
-  ]
-};
+      expectedOutput:
+        '## 🏛️ Stoic Wisdom\n\n*"You have power over your mind - not outside events. Realize this, and you will find strength."* - Marcus Aurelius\n\n---\n\n1. "The impediment to action advances action. What stands in the way becomes the way." - Marcus Aurelius\n2. "Every new beginning comes from some other beginning’s end." - Seneca\n3. "How does it help to make troubles heavier by bemoaning them?" - Seneca',
+    },
+  ],
+}
 
 /**
  * Eastern philosophy template
@@ -353,9 +359,10 @@ export const easternPhilosophyTemplate: IQuoteTemplate = {
     author: 'MCP Quotes Server',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: '1.0.0'
+    version: '1.0.0',
   },
-  content: 'Discover {numberOfQuotes} {tradition} philosophical quotes about {concept} for {purpose}.',
+  content:
+    'Discover {numberOfQuotes} {tradition} philosophical quotes about {concept} for {purpose}.',
   variables: [
     {
       name: 'numberOfQuotes',
@@ -366,8 +373,8 @@ export const easternPhilosophyTemplate: IQuoteTemplate = {
       defaultValue: 4,
       validation: {
         min: 1,
-        max: 8
-      }
+        max: 8,
+      },
     },
     {
       name: 'tradition',
@@ -376,7 +383,7 @@ export const easternPhilosophyTemplate: IQuoteTemplate = {
       type: VariableType.ENUM,
       required: true,
       enumValues: ['Zen', 'Taoist', 'Buddhist', 'Hindu', 'Confucian', 'Mixed Eastern'],
-      defaultValue: 'Zen'
+      defaultValue: 'Zen',
     },
     {
       name: 'concept',
@@ -391,8 +398,8 @@ export const easternPhilosophyTemplate: IQuoteTemplate = {
         'the middle way',
         'harmony and balance',
         'enlightenment',
-        'impermanence'
-      ]
+        'impermanence',
+      ],
     },
     {
       name: 'purpose',
@@ -401,18 +408,23 @@ export const easternPhilosophyTemplate: IQuoteTemplate = {
       type: VariableType.STRING,
       required: true,
       defaultValue: 'inner peace',
-      examples: ['meditation practice', 'life guidance', 'spiritual growth', 'understanding reality'],
+      examples: [
+        'meditation practice',
+        'life guidance',
+        'spiritual growth',
+        'understanding reality',
+      ],
       validation: {
         min: 3,
-        max: 40
-      }
-    }
+        max: 40,
+      },
+    },
   ],
   outputFormat: {
     format: OutputFormat.MARKDOWN,
     options: {
-      includeHeader: false
-    }
+      includeHeader: false,
+    },
   },
   components: [
     {
@@ -420,26 +432,26 @@ export const easternPhilosophyTemplate: IQuoteTemplate = {
       type: 'conditional',
       condition: 'tradition === "Zen"',
       content: '♒ **Zen Wisdom** ♒\n\n',
-      order: 1
+      order: 1,
     },
     {
       id: 'tao-header',
       type: 'conditional',
       condition: 'tradition === "Taoist"',
       content: '☯ **Taoist Wisdom** ☯\n\n',
-      order: 1
-    }
+      order: 1,
+    },
   ],
   postProcessors: [
     {
       name: 'add-metadata',
       type: 'enricher',
       options: {
-        position: 'bottom'
-      }
-    }
-  ]
-};
+        position: 'bottom',
+      },
+    },
+  ],
+}
 
 /**
  * Export all philosophical templates
@@ -449,5 +461,5 @@ export const philosophicalTemplates: IQuoteTemplate[] = [
   existentialPhilosophyTemplate,
   modernPhilosophyTemplate,
   stoicPhilosophyTemplate,
-  easternPhilosophyTemplate
-];
+  easternPhilosophyTemplate,
+]

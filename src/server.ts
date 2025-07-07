@@ -1,241 +1,239 @@
 /**
  * MCP Quotes Server
- * 
+ *
  * Main server implementation using MCP SDK
  */
 
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { fileURLToPath } from 'url'
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { 
-  CallToolRequestSchema, 
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
+import {
+  CallToolRequestSchema,
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
   ErrorCode,
-  McpError
-} from '@modelcontextprotocol/sdk/types.js';
+  McpError,
+} from '@modelcontextprotocol/sdk/types.js'
 
-import { resourceRegistry } from './resources/index.js';
-import { toolRegistry } from './tools/index.js';
-import { HttpServerTransport } from './transports/http.js';
-import { getConfig } from './utils/config.js';
-import { logger } from './utils/logger.js';
+import { resourceRegistry } from './resources/index.js'
+import { toolRegistry } from './tools/index.js'
+import { HttpServerTransport } from './transports/http.js'
+import { getConfig } from './utils/config.js'
+import { logger } from './utils/logger.js'
 
 // Load package.json
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 interface IPackageJson {
-  name: string;
-  version: string;
+  name: string
+  version: string
 }
-const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8')) as IPackageJson;
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '..', 'package.json'), 'utf8')
+) as IPackageJson
 
 export class QuotesServer {
-  private server: Server;
-  private transport: Transport;
-  private httpTransport?: HttpServerTransport;
-  
+  private server: Server
+  private transport: Transport
+  private httpTransport?: HttpServerTransport
+
   constructor() {
-    const config = getConfig();
-    
+    const config = getConfig()
+
     logger.info('Creating MCP Quotes Server', {
       name: packageJson.name,
       version: packageJson.version,
-      transport: config.transport
-    });
-    
+      transport: config.transport,
+    })
+
     // Initialize MCP Server
     this.server = new Server(
       {
         name: packageJson.name,
-        version: packageJson.version
+        version: packageJson.version,
       },
       {
         capabilities: {
           tools: {},
-          resources: {}
-        }
+          resources: {},
+        },
       }
-    );
-    
+    )
+
     // Initialize transport based on configuration
     if (config.transport === 'http') {
       this.httpTransport = new HttpServerTransport({
         port: config.httpPort,
         host: config.httpHost,
-        path: config.httpPath
-      });
-      this.transport = this.httpTransport;
+        path: config.httpPath,
+      })
+      this.transport = this.httpTransport
     } else {
-      this.transport = new StdioServerTransport();
+      this.transport = new StdioServerTransport()
     }
-    
+
     // Register handlers
-    this.registerHandlers();
+    this.registerHandlers()
   }
-  
+
   private registerHandlers(): void {
     // Tool call handler
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-      
-      logger.info('Tool call received', { tool: name, args });
-      
-      const tool = toolRegistry[name];
+      const { name, arguments: args } = request.params
+
+      logger.info('Tool call received', { tool: name, args })
+
+      const tool = toolRegistry[name]
       if (!tool) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown tool: ${name}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`)
       }
-      
+
       try {
-        const result = await tool.handler(args);
-        logger.info('Tool call succeeded', { tool: name });
+        const result = await tool.handler(args)
+        logger.info('Tool call succeeded', { tool: name })
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }
-          ]
-        };
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        }
       } catch (error) {
-        logger.error('Tool call failed', { tool: name, error });
+        logger.error('Tool call failed', { tool: name, error })
         throw new McpError(
           ErrorCode.InternalError,
           `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
-        );
+        )
       }
-    });
-    
+    })
+
     // Resource list handler
     this.server.setRequestHandler(ListResourcesRequestSchema, () => {
-      logger.info('Listing resources');
+      logger.info('Listing resources')
       return {
-        resources: Object.values(resourceRegistry).map(r => r.definition)
-      };
-    });
-    
+        resources: Object.values(resourceRegistry).map((r) => r.definition),
+      }
+    })
+
     // Resource read handler
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-      const { uri } = request.params;
-      
-      logger.info('Resource read requested', { uri });
-      
-      const resource = resourceRegistry[uri];
+      const { uri } = request.params
+
+      logger.info('Resource read requested', { uri })
+
+      const resource = resourceRegistry[uri]
       if (!resource) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown resource: ${uri}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown resource: ${uri}`)
       }
-      
+
       try {
-        const result = await resource.handler(uri);
-        logger.info('Resource read succeeded', { uri });
+        const result = await resource.handler(uri)
+        logger.info('Resource read succeeded', { uri })
         return {
           contents: [
             {
               uri,
               mimeType: resource.definition.mimeType || 'application/json',
-              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
-            }
-          ]
-        };
+              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+            },
+          ],
+        }
       } catch (error) {
-        logger.error('Resource read failed', { uri, error });
+        logger.error('Resource read failed', { uri, error })
         throw new McpError(
           ErrorCode.InternalError,
           `Resource read failed: ${error instanceof Error ? error.message : String(error)}`
-        );
+        )
       }
-    });
-    
+    })
+
     // List tools handler
     this.server.setRequestHandler(ListToolsRequestSchema, () => {
-      logger.info('Listing tools');
+      logger.info('Listing tools')
       return {
-        tools: Object.values(toolRegistry).map(t => t.definition)
-      };
-    });
-    
+        tools: Object.values(toolRegistry).map((t) => t.definition),
+      }
+    })
+
     // List resource templates handler
     this.server.setRequestHandler(ListResourceTemplatesRequestSchema, () => {
-      logger.info('Listing resource templates');
+      logger.info('Listing resource templates')
       return {
-        resourceTemplates: []  // No resource templates defined yet
-      };
-    });
-    
+        resourceTemplates: [], // No resource templates defined yet
+      }
+    })
+
     // Register all tools
-    const toolList = Object.values(toolRegistry).map(t => t.definition);
-    toolList.forEach(tool => {
-      logger.info('Registered tool', { name: tool.name });
-    });
-    
+    const toolList = Object.values(toolRegistry).map((t) => t.definition)
+    toolList.forEach((tool) => {
+      logger.info('Registered tool', { name: tool.name })
+    })
+
     // Register all resources
-    const resourceList = Object.values(resourceRegistry).map(r => r.definition);
-    resourceList.forEach(resource => {
-      logger.info('Registered resource', { uri: resource.uri });
-    });
+    const resourceList = Object.values(resourceRegistry).map((r) => r.definition)
+    resourceList.forEach((resource) => {
+      logger.info('Registered resource', { uri: resource.uri })
+    })
   }
-  
+
   async start(): Promise<void> {
-    const config = getConfig();
-    logger.info('Starting MCP Quotes Server...', { transport: config.transport });
-    
+    const config = getConfig()
+    logger.info('Starting MCP Quotes Server...', { transport: config.transport })
+
     try {
       // For HTTP transport, start the HTTP server first
       if (this.httpTransport) {
-        await this.httpTransport.start();
+        await this.httpTransport.start()
       }
-      
+
       // Connect the transport to the server
-      await this.server.connect(this.transport);
-      
+      await this.server.connect(this.transport)
+
       logger.info('MCP Quotes Server started successfully', {
         transport: config.transport,
-        ...(config.transport === 'http' ? {
-          url: `http://${config.httpHost}:${config.httpPort}${config.httpPath}`,
-          httpPort: config.httpPort,
-          httpHost: config.httpHost,
-          httpPath: config.httpPath
-        } : {}),
+        ...(config.transport === 'http'
+          ? {
+              url: `http://${config.httpHost}:${config.httpPort}${config.httpPath}`,
+              httpPort: config.httpPort,
+              httpHost: config.httpHost,
+              httpPath: config.httpPath,
+            }
+          : {}),
         tools: Object.keys(toolRegistry),
-        resources: Object.keys(resourceRegistry)
-      });
-      
+        resources: Object.keys(resourceRegistry),
+      })
+
       // For HTTP transport, the endpoint is already logged by the transport
       if (config.transport === 'stdio') {
-        logger.info('MCP server running in STDIO mode');
+        logger.info('MCP server running in STDIO mode')
       }
     } catch (error) {
-      logger.error('Failed to start server', error);
-      throw error;
+      logger.error('Failed to start server', error)
+      throw error
     }
   }
-  
+
   async stop(): Promise<void> {
-    logger.info('Stopping MCP Quotes Server...');
-    
+    logger.info('Stopping MCP Quotes Server...')
+
     try {
-      await this.server.close();
-      
+      await this.server.close()
+
       // Close HTTP transport if used
       if (this.httpTransport) {
-        await this.httpTransport.close();
+        await this.httpTransport.close()
       }
-      
-      logger.info('MCP Quotes Server stopped successfully');
+
+      logger.info('MCP Quotes Server stopped successfully')
     } catch (error) {
-      logger.error('Error stopping server', error);
-      throw error;
+      logger.error('Error stopping server', error)
+      throw error
     }
   }
 }
@@ -244,5 +242,5 @@ export class QuotesServer {
  * Factory function to create a quotes server instance
  */
 export function createQuotesServer(): QuotesServer {
-  return new QuotesServer();
+  return new QuotesServer()
 }

@@ -37,10 +37,17 @@ echo ""
 
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
+if [ -z "$CURRENT_VERSION" ]; then
+    echo -e "${RED}Error: Could not read current version from package.json${NC}"
+    exit 1
+fi
 echo -e "Current version: ${YELLOW}$CURRENT_VERSION${NC}"
 echo ""
 
 # Calculate next versions
+# Temporarily disable exit on error for version calculations
+set +e
+
 PATCH_VERSION=$(npm version patch --no-git-tag-version --no-commit-hooks 2>/dev/null | sed 's/v//')
 npm version $CURRENT_VERSION --no-git-tag-version --no-commit-hooks --force > /dev/null 2>&1
 
@@ -49,6 +56,20 @@ npm version $CURRENT_VERSION --no-git-tag-version --no-commit-hooks --force > /d
 
 MAJOR_VERSION=$(npm version major --no-git-tag-version --no-commit-hooks 2>/dev/null | sed 's/v//')
 npm version $CURRENT_VERSION --no-git-tag-version --no-commit-hooks --force > /dev/null 2>&1
+
+# Re-enable exit on error
+set -e
+
+# Validate that version calculations succeeded
+if [ -z "$PATCH_VERSION" ] || [ -z "$MINOR_VERSION" ] || [ -z "$MAJOR_VERSION" ]; then
+    echo -e "${RED}Error: Failed to calculate next versions. This might be due to:${NC}"
+    echo "  - Uncommitted changes in your working directory"
+    echo "  - Invalid package.json format"
+    echo "  - Missing npm or node installation"
+    echo ""
+    echo "Please run 'git status' to check for uncommitted changes."
+    exit 1
+fi
 
 # Show version options
 echo "Select release type:"
